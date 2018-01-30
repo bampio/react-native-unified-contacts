@@ -4,46 +4,6 @@
    <Group
       location = "group:RNUnifiedContacts"
       name = "RNUnifiedContacts">
-      <Group
-         location = "container:RNUnifiedContacts/Encryption"
-         name = "Encryption">
-         <FileRef
-            location = "group:Array+Foundation.swift">
-         </FileRef>
-         <FileRef
-            location = "group:Data+Extension.swift">
-         </FileRef>
-         <FileRef
-            location = "group:Utils+Foundation.swift">
-         </FileRef>
-         <FileRef
-            location = "group:BatchedCollection.swift">
-         </FileRef>
-         <FileRef
-            location = "group:Checksum.swift">
-         </FileRef>
-         <FileRef
-            location = "group:Digest.swift">
-         </FileRef>
-         <FileRef
-            location = "group:DigestType.swift">
-         </FileRef>
-         <FileRef
-            location = "group:Extensions.swift">
-         </FileRef>
-         <FileRef
-            location = "group:Generics.swift">
-         </FileRef>
-         <FileRef
-            location = "group:int+Extension.swift">
-         </FileRef>
-         <FileRef
-            location = "group:SHA2.swift">
-         </FileRef>
-         <FileRef
-            location = "group:Utils.swift">
-         </FileRef>
-      </Group>
       <FileRef
          location = "group:RNUnifiedContacts-Bridging-Header.h">
       </FileRef>
