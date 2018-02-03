@@ -82,12 +82,17 @@ RCT_EXPORT_METHOD(openPrivacySettings) {
   [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
 }
 
-//Picker
-RCT_EXTERN_METHOD(pickContact:(NSDictionary *)data
-                  resolve:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject);
+//Picker  Contacts.openContact
 
-RCT_EXTERN_METHOD(pickContacts:(NSDictionary *)data
-                  resolve:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(pickContact:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback);
+RCT_EXTERN_METHOD(pickContacts:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback);
+RCT_EXTERN_METHOD(openContact:(NSString *)identifier);
+
+//RCT_EXTERN_METHOD(pickContact:(NSDictionary *)data
+//                  resolve:(RCTPromiseResolveBlock)resolve
+//                  reject:(RCTPromiseRejectBlock)reject);
+//
+//RCT_EXTERN_METHOD(pickContacts:(NSDictionary *)data
+//                  resolve:(RCTPromiseResolveBlock)resolve
+//                  reject:(RCTPromiseRejectBlock)reject);
 @end

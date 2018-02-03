@@ -11,9 +11,9 @@ import Foundation
 
 @available(iOS 9.0, *)
 @objc(RNUnifiedContacts)
-class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate {
+class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewControllerDelegate {
     //  iOS Reference: https://developer.apple.com/library/ios/documentation/Contacts/Reference/CNContact_Class/#//apple_ref/doc/constant_group/Metadata_Keys
-  
+  fileprivate var store: CNContactStore!
   var contactDelegate: PickContactDelegate?
   var contactsDelegate: PickContactsDelegate?
 
@@ -794,9 +794,11 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate {
     }
     return nil
   }
-  @objc func pickContact(_ data: [String: Any], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+  
+  @objc func pickContact(_ data: [String: Any], callback: @escaping (NSArray) -> () ) -> Void {
     let vc = CNContactPickerViewController()
-    contactDelegate = PickContactDelegate(delegate: self, resolve: resolve, reject: reject)
+    contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
+    //contactDelegate = PickContactDelegate(delegate: self, resolve: resolve, reject: reject)
     vc.delegate = contactDelegate
     
     if let displayedPropertyKeys = data["displayedPropertyKeys"] as? [String] {
@@ -805,22 +807,47 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate {
     
     present(viewController: vc)
   }
-  
-  @objc func pickContacts(_ data: [String: Any], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    let vc = CNContactPickerViewController()
-    contactsDelegate = PickContactsDelegate(delegate: self, resolve: resolve, reject: reject)
-    vc.delegate = contactsDelegate
-    
-    if let displayedPropertyKeys = data["displayedPropertyKeys"] as? [String] {
-      vc.displayedPropertyKeys = displayedPropertyKeys
-    }
-    
-    present(viewController: vc)
+  @objc func pickContacts(_ data: [String: Any], callback: @escaping (NSArray) -> () ) -> Void {
+//    let vc = CNContactPickerViewController()
+//    contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
+//    vc.delegate = contactsDelegate
+//
+//    if let displayedPropertyKeys = data["displayedPropertyKeys"] as? [String] {
+//      vc.displayedPropertyKeys = displayedPropertyKeys
+//    }
+//
+//    present(viewController: vc)
+    //self.showContactViewController()
+    //self.showContactDetails(identifier: "F57C8277-585D-4327-88A6-B5689FF69DFE")
   }
-  
   func done() {
     contactDelegate = nil
     contactsDelegate = nil
   }
   
+  @objc func openContact(_ identifier : String) {
+    let requiredKeys = [
+      CNContactBirthdayKey,CNContactDatesKey,CNContactDepartmentNameKey,CNContactEmailAddressesKey,
+      CNContactFamilyNameKey,CNContactGivenNameKey,CNContactIdentifierKey,CNContactImageDataAvailableKey,
+      //    CNContactImageDataKey,
+      CNContactInstantMessageAddressesKey,CNContactJobTitleKey,CNContactMiddleNameKey,CNContactNamePrefixKey,
+      CNContactNameSuffixKey,CNContactNicknameKey,CNContactNonGregorianBirthdayKey,CNContactNoteKey,CNContactOrganizationNameKey,
+      CNContactPhoneNumbersKey,CNContactPhoneticFamilyNameKey,
+      CNContactPhoneticGivenNameKey,CNContactPhoneticMiddleNameKey,
+      // CNContactPhoneticOrganizationNameKey,
+      CNContactPostalAddressesKey,CNContactPreviousFamilyNameKey,
+      CNContactRelationsKey,CNContactSocialProfilesKey,CNContactThumbnailImageDataKey,CNContactTypeKey,CNContactUrlAddressesKey,
+      CNContactViewController.descriptorForRequiredKeys()
+      ] as [Any]
+    
+    let cNContact = getCNContact( identifier, keysToFetch: requiredKeys as! [CNKeyDescriptor] )
+    let cvc = CNContactViewController(for: cNContact!)
+    cvc.delegate = self
+    cvc.allowsEditing = true
+    let navigationController = UINavigationController(rootViewController: cvc)
+    present(viewController: navigationController)
+  }
+
+  
+
 }
