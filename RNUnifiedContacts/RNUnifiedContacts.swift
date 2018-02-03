@@ -808,15 +808,15 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     present(viewController: vc)
   }
   @objc func pickContacts(_ data: [String: Any], callback: @escaping (NSArray) -> () ) -> Void {
-//    let vc = CNContactPickerViewController()
-//    contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
-//    vc.delegate = contactsDelegate
-//
-//    if let displayedPropertyKeys = data["displayedPropertyKeys"] as? [String] {
-//      vc.displayedPropertyKeys = displayedPropertyKeys
-//    }
-//
-//    present(viewController: vc)
+    let vc = CNContactPickerViewController()
+    contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
+    vc.delegate = contactsDelegate
+
+    if let displayedPropertyKeys = data["displayedPropertyKeys"] as? [String] {
+      vc.displayedPropertyKeys = displayedPropertyKeys
+    }
+
+    present(viewController: vc)
     //self.showContactViewController()
     //self.showContactDetails(identifier: "F57C8277-585D-4327-88A6-B5689FF69DFE")
   }
