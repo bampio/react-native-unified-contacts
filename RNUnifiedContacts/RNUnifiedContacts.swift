@@ -795,22 +795,24 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     return nil
   }
   
-  @objc func pickContact(_ data: [String: Any], callback: @escaping (NSArray) -> () ) -> Void {
+  @objc func pickContact(_ data: [String: Any],identifiers:[String], callback: @escaping (NSArray) -> () ) -> Void {
     let vc = CNContactPickerViewController()
     contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
     //contactDelegate = PickContactDelegate(delegate: self, resolve: resolve, reject: reject)
     vc.delegate = contactDelegate
-    
+    vc.predicateForEnablingContact = NSPredicate(format: "(identifier IN %@)", identifiers)
     if let displayedPropertyKeys = data["displayedPropertyKeys"] as? [String] {
       vc.displayedPropertyKeys = displayedPropertyKeys
     }
     
     present(viewController: vc)
   }
-  @objc func pickContacts(_ data: [String: Any], callback: @escaping (NSArray) -> () ) -> Void {
+  @objc func pickContacts(_ data: [String: Any],identifiers:[String], callback: @escaping (NSArray) -> () ) -> Void {
     let vc = CNContactPickerViewController()
     contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
     vc.delegate = contactsDelegate
+    
+    vc.predicateForEnablingContact = NSPredicate(format: "(identifier IN %@)", identifiers)
 
     if let displayedPropertyKeys = data["displayedPropertyKeys"] as? [String] {
       vc.displayedPropertyKeys = displayedPropertyKeys
