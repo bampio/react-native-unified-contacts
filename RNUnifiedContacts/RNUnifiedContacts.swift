@@ -800,7 +800,7 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
     //contactDelegate = PickContactDelegate(delegate: self, resolve: resolve, reject: reject)
     vc.delegate = contactDelegate
-    vc.predicateForEnablingContact = NSPredicate(format: "(identifier IN %@)", identifiers)
+    vc.predicateForEnablingContact = NSPredicate(format: "!(identifier IN %@)", identifiers)
     if let displayedPropertyKeys = data["displayedPropertyKeys"] as? [String] {
       vc.displayedPropertyKeys = displayedPropertyKeys
     }
@@ -812,7 +812,7 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
     vc.delegate = contactsDelegate
     
-    vc.predicateForEnablingContact = NSPredicate(format: "(identifier IN %@)", identifiers)
+    vc.predicateForEnablingContact = NSPredicate(format: "!(identifier IN %@)", identifiers)
 
     if let displayedPropertyKeys = data["displayedPropertyKeys"] as? [String] {
       vc.displayedPropertyKeys = displayedPropertyKeys
