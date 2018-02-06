@@ -20,25 +20,25 @@
 // Label constants for phone numbers and emails
 - (NSDictionary *)constantsToExport
 {
-  return @{
-          @"phoneNumberLabel": @{
-              @"HOME"     : @"home",
-              @"WORK"     : @"work",
-              @"MOBILE"   : @"mobile",
-              @"IPHONE"   : @"iPhone",
-              @"MAIN"     : @"main",
-              @"HOME_FAX" : @"home fax",
-              @"WORK_FAX" : @"work fax",
-              @"PAGER"    : @"pager",
-              @"OTHER"    : @"other",
-              },
-          @"emailAddressLabel": @{
-              @"HOME"     : @"home",
-              @"WORK"     : @"work",
-              @"ICLOUD"   : @"iCloud",
-              @"OTHER"    : @"other",
-              },
-         };
+    return @{
+             @"phoneNumberLabel": @{
+                     @"HOME"     : @"home",
+                     @"WORK"     : @"work",
+                     @"MOBILE"   : @"mobile",
+                     @"IPHONE"   : @"iPhone",
+                     @"MAIN"     : @"main",
+                     @"HOME_FAX" : @"home fax",
+                     @"WORK_FAX" : @"work fax",
+                     @"PAGER"    : @"pager",
+                     @"OTHER"    : @"other",
+                     },
+             @"emailAddressLabel": @{
+                     @"HOME"     : @"home",
+                     @"WORK"     : @"work",
+                     @"ICLOUD"   : @"iCloud",
+                     @"OTHER"    : @"other",
+                     },
+             };
 }
 
 // Contacts
@@ -79,13 +79,17 @@ RCT_EXTERN_METHOD(requestAccessToContacts:(RCTResponseSenderBlock)callback);
 RCT_EXTERN_METHOD(generateHash:(NSString *)identifier callback:(RCTResponseSenderBlock)callback);
 
 RCT_EXPORT_METHOD(openPrivacySettings) {
-  [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
 }
 
 //Picker  Contacts.openContact
 
-RCT_EXTERN_METHOD(pickContact:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback);
-RCT_EXTERN_METHOD(pickContacts:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback);
+
+RCT_EXTERN_METHOD(pickContact:(NSArray *)contactIdentifiers callback:(RCTResponseSenderBlock)callback);
+
+
+RCT_EXTERN_METHOD(pickContacts:(NSArray *)contactIdentifiers callback:(RCTResponseSenderBlock)callback);
+
 RCT_EXTERN_METHOD(openContact:(NSString *)identifier);
 
 //RCT_EXTERN_METHOD(pickContact:(NSDictionary *)data
@@ -96,3 +100,4 @@ RCT_EXTERN_METHOD(openContact:(NSString *)identifier);
 //                  resolve:(RCTPromiseResolveBlock)resolve
 //                  reject:(RCTPromiseRejectBlock)reject);
 @end
+
