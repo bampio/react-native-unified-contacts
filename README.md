@@ -1,378 +1,71 @@
-<img src="readme_assets/react-native-unified-contacts-logo.png" width="667" alt="React Native Unified Contacts Logo">
-
-<!-- # React Native Unified Contacts -->
-[![npm version](https://badge.fury.io/js/react-native-unified-contacts.svg)](https://badge.fury.io/js/react-native-unified-contacts)
-
-**Your best friend when working with the latest and greatest [Contacts Framework][apple-contacts-framework] in iOS 9+.**
-
-### **Requires iOS 9+**
-
-Apple recently did a complete overhaul of their Contacts Framework that does a number of things, including:
-
-  1. Making it simpler to use the framework.
-
-  2. Use the same framework across all their platforms, including iOS, tvOS, watchOS and even OS X.
-
-  3. Get unified Contact details not only from a User's local Contact entry, but also from the user's social accounts, like Facebook and Twitter. This allows you to get a Facebook profile picture for a Contact you have in your contact database.
-
-There are a couple of react native packages that give you access to Contacts already ([react-native-contacts][react-native-contacts] and [react-native-addressbook][react-native-addressbook]) but neither of them utilize the new Unified Contacts framework available in iOS 9+. For good reason too, as most people are still supporting devices that are pre-iOS 9.
-
-However, if you have the luxury of supporting iOS 9 and up, you should definitely use this library to  make use of this great new framework by Apple.
-
-
-# Installation
-
-  1. Install the npm package:
-   ```bash
-   npm install --save react-native-unified-contacts
-   ```
-   _This will install the latest react-native-unified-contacts package and add it to your package.json file._
-
-  2. Navigate to `<your-project-directory>/node_modules/react-native-unified-contacts/` and drag the `RNUnifiedContacts` directory into your project directory in Xcode. 
-
-    Ensure that `Copy items if needed` is **not** checked, select `Create groups` and ensure your project is selected for a target.
-
-    ![Select files](readme_assets/drag_and_drop_library_to_sidebar.gif)
-
-  3. For iOS 10+, you need to add a `NSContactsUsageDescription` key to your `Info.plist` that provides a reason why your app needs to access private information:
-
-  ```
-<key>NSContactsUsageDescription</key>
-<string>ntwrk accesses Contacts in order to quickly add Relationships and allow them to reach out via ntwrk through email, text, phone, etc.</string>
-```
-
-  If done through XCode UI, the key is named `Privacy - Contacts Usage Description`.
-
-  4. See the [Usage section](#usage) for how to require the library and make use of it.
-
-
-## Usage
-
-  If done through XCode UI, the key is named `Privacy - Contacts Usage Description`.
-
-# Usage
-
-## Require Library
-
-```js
-import Contacts from 'react-native-unified-contacts';
-```
-
-## Getting Contacts
-
-### Get a Single Contact
-
-```js
-let contactIdentifier = 'A7806266-6574-4731-82E1-C54946F63E1C';
-
-Contacts.getContact( contactIdentifier, (error, contact) =>  {
-  if (error) {
-    console.error(error);
-  }
-  else {
-    console.log(contact);
-  }
-});
-```
-
-### Get All Contacts
-
-```js
-Contacts.getContacts( (error, contacts) =>  {
-  if (error) {
-    console.error(error);
-  }
-  else {
-    console.log(contacts);
-  }
-});
-```
-
-### Search All Contacts
-
-```js
-Contacts.searchContacts( 'Don Draper', (error, contacts) =>  {
-  if (error) {
-    console.error(error);
-  }
-  else {
-    console.log(contacts);
-  }
-});
-```
-_This will search the given (first) and family (last) name of all of the Contacts for the provided string. Future versions will allow you to search other fields as well, like phone or email._
-
-## Adding Contacts
-
-### Add a Single Contact
-
-```js
-let contactData = {
-  'givenName':        'John',
-  'familyName':       'Appleseed',
-  'organizationName': 'Apple Inc',
-  'phoneNumbers': [
-    {'label': Contacts.phoneNumberLabel.HOME, 'stringValue': '555-522-8243'},
-    {'label': Contacts.phoneNumberLabel.WORK, 'stringValue': '(408) 555-5270'},
-  ],
-  'emailAddresses': [
-    {'label': Contacts.emailAddressLabel.WORK, 'value': 'john.appleseed@apple.com'},
-    {'label': Contacts.emailAddressLabel.HOME, 'value': 'john@gmail.com'},
-  ],
-}
-
-Contacts.addContact( contactData, (error, success) => {
-  if (error) {
-    console.log(error);
-  }
-  else {
-    console.log(success);
-  }
-});
-```
-
-## Updating Contacts
-
-### Update a Single Contact
-
-```js
-let contactIdentifier = 'A7806266-6574-4731-82E1-C54946F63E1C';
-
-let contactData = {
-  'givenName':        'John',
-  'familyName':       'Appleseed',
-  'organizationName': 'Apple Inc',
-  'phoneNumbers': [
-    {'label': Contacts.phoneNumberLabel.HOME, 'stringValue': '555-522-8243'},
-    {'label': Contacts.phoneNumberLabel.WORK, 'stringValue': '(408) 555-5270'},
-  ],
-  'emailAddresses': [
-    {'label': Contacts.emailAddressLabel.WORK, 'value': 'john.appleseed@apple.com'},
-    {'label': Contacts.emailAddressLabel.HOME, 'value': 'john@gmail.com'},
-  ],
-}
-
-Contacts.updateContact(contactIdentifier, contactData, (error, success) => {
-  if (error) {
-    console.log(error);
-  }
-  else {
-    console.log(success);
-  }
-});
-```
-
-_NOTE: If your `contactData` includes the keys `phoneNumbers` or `emailAddresses`, the associated value will completely replace any Phone Numbers or Email Addresses for that Contact, respectively. In other words, if you have a contact with two Phone Numbers and you'd like to add a third, you need to pass in ALL THREE Phone Numbers, not just the new one. Same goes for Email Addresses._
-
-
-## Deleting Contacts
-
-### Delete a Single Contact
-
-```js
-let contactIdentifier = 'A7806266-6574-4731-82E1-C54946F63E1C';
-
-Contacts.deleteContact( contactIdentifier, (error, success) => {
-  if (error) {
-    console.log(error);
-  }
-  else {
-    console.log(success);
-  }
-}
-```
-
-
-## Accessing the User's Contacts
-
-### Can The User Access Contacts?
-
-```js
-Contacts.userCanAccessContacts( (userCanAccessContacts) => {
-  if (userCanAccessContacts) {
-    console.log("User has access to Contacts!");
-  }
-  else {
-    console.log("User DOES NOT have access to Contacts!");
-  }
-});
-```
-_This will not **request** access. For that, use the [`requestAccessToContacts`](#request-access-to-contacts)._
-
-
-### Request Access To Contacts
-
-```js
-Contacts.requestAccessToContacts( (userCanAccessContacts) => {
-  if (userCanAccessContacts) {
-    console.log("User has access to Contacts!");
-  }
-  else {
-    console.log("User DOES NOT have access to Contacts!");
-  }
-});
-```
-This will do everything you'd expect. Here's the workflow:
-
-1. Does the user already have access to Contacts?
-
-   1. Yes. Return `true`.
-
-   2. No.
-
-     1. If the User has not been asked before (first time asking), prompt user for access:
-
-        1. Yes. Return `true`.
-
-        2. No. Return `false`.
-
-     2. If user has already denied access to Contacts, return `false`.
-
-        _The user will have to go to their privacy settings and allow access manually. We provide a [`openPrivacySettings`](#open-privacy-settings) method that allows you to bring up the privacy page easily for the user. See below._
-
-
-### Open the User's Privacy Settings
-
-```js
-Contacts.openPrivacySettings()
-```
-
-In the event that the User has denied access to their Contacts, you will need to have them manually change their setting in the privacy page. This method will open up the right page automatically for them and improves the experience for the user.
-
-Here's an example of how you might alert the user that they need to update their privacy settings:
-
-```js
-// Alert the User that we can't access their Contact.
-// Provide a link that will open up their Privacy Settings for ntwrk.
-//
-function alertUserToAllowAccessToContacts() {
-  Alert.alert(
-    "Can't Access Your Contacts",
-    "Click on Open Settings and allow ntwrk to access your Contacts.\n" +
-    "\n" +
-    "Then come back!",
-    [
-      {text: 'Open Settings', onPress: () => Contacts.openPrivacySettings() },
-      {text: "Later"}
-    ]
-  )
-}
-```
-
-This will produce an alert similar to this:
-
-![Privacy Settings Alert](readme_assets/privacy_settings_alert.png)
-
-
-## Contact Object
-
-The returned Contact object(s) will look something like this:
-
-```js
-{
-  familyName: "Draper",
-  givenName:  "Donald",
-  identifier: "A7806266-6574-4731-82E1-C54946F63E1C",
-  imageDataAvailable: false,
-  thumbnailImageData: ...Base64 String...,
-  phoneNumbers: [
-    {
-      countryCode: "us",
-      digits:      "4032694148",
-      identifier:  "9CDE4C1B-412F-4974-BE8D-80C951004694",
-      label:       "work",
-      stringValue: "(403) 269-4147"  
-    },
-    {
-      countryCode: "us",
-      digits:      "4036071713",
-      identifier:  "40477249-B50B-46A8-BF35-0A62B895A15A",
-      label:       "mobile",
-      stringValue: "(403) 607-1713"  
-    }  
-  ],
-  emailAddresses: [
-    {
-      identifier: "9CDE4C1B-412F-4974-BE8D-80C951004694",
-      label:      "work",
-      value:      "don.draper@scdp.com"
-    },
-    {
-      identifier: "9CDE4C1B-412F-4974-BE8D-80C951004694",
-      label:      "home",
-      value:      "theonedon@gmail.com"
-    }
-  ],
-  postalAddresses: [
-    {
-      city:        "Menlo Park",
-      country:     "United States",
-      identifier:  "7481D15D-C27C-4805-876F-D2C0D413CEBD",
-      label:       "work",
-      postalCode:  "94025",
-      state:       "CA",
-      street:      "3000 Sand Hill Road, 3-290"
-      stringValue: "3000 Sand Hill Road, 3-290.↵Menlo Park CA 94025↵"
-    }
-  ],
-  birthday: [
-    {
-      day:   "15",
-      month: "4",
-      year:  "1985"
-    }
-  ],
-  note: "What you call love was invented by guys like me … to sell nylons."
-}
-```
-
-_NOTE: The birthday key will not be included if the Contact's birthday is not set. Also, it's possible for a Contact's
-  birthday to not include the `year`. In this case, `year` will be `null`._
-
-### Thumbnail Image
-
-Thumbnail Image Data is stored in a base64 format and can easily be used with the `Image` component of React Native as follows:
-
-```js
-// contact is a single Contact record retrieved from something like Contacts.getContacts().
-var base64ImageUri = 'data:image/png;base64,' + contact.thumbnailImageData;
-
-<Image source={{uri: base64ImageUri}}/>
-```
-
-# Troubleshooting
-
-If you run into trouble, take a look at the following thread:
-
-https://github.com/joshuapinter/react-native-unified-contacts/issues/15
-
-You should also have the latest version of XCode (8.2+) and Swift (3+).
-
-If that doesn't help you, please [create an Issue](https://github.com/joshuapinter/react-native-unified-contacts/issues/new) and we'll figure it out together.
-
-# Many Thanks To
-
-* My friend **[Smixx][smixx]** for working through adding a Swift library to a React Native project over his lunch hour.
-* **[Ismail Pelaseyed (homanp)][homanp]** for adding a couple of [huge PRs][homanp-prs] for Creating, Updating and Deleting Contacts.
-
-# TODO
-
-- [X] Add Create/Update/Delete methods for Contacts. **_(Thanks [homanp][homanp]!)_**
-- [ ] Add Android support.
-- [ ] Add integration with Contacts-UI (_Coming Soon!_).
-
-
-# License
-
-The MIT License (MIT)
-
-Copyright 2016 - `Time.now()` by [Joshua Pinter][joshuapinter]
-
-
-[apple-contacts-framework]: https://developer.apple.com/library/ios/documentation/Contacts/Reference/Contacts_Framework/index.html
-[react-native-contacts]:    https://github.com/rt2zz/react-native-contacts
-[react-native-addressbook]: https://github.com/rt2zz/react-native-addressbook
-[smixx]:                    https://twitter.com/smixx
-[joshuapinter]:             https://twitter.com/joshuapinter
-[homanp]:                   https://twitter.com/pelaseyed
-[homanp-prs]:               https://github.com/joshuapinter/react-native-unified-contacts/pulls?utf8=%E2%9C%93&q=is%3Apr+author%3Ahomanp+
+## React Native Android Library Boilerplate
+This project serves as a boilerplate to create custom React Native native modules that can later be installed through NPM and easily be used in production.
+
+## Getting started
+1. Clone the project
+2. Customize the project name by doing the following:
+    * Edit `author` and `name` in `package.json`
+    * Customize the Java package name (`com.domain.package`) as follows:
+        1. Modify it in `android/src/main/AndroidManifest.xml`.
+        2. Rename the folders starting from `android/src/main/java` to match your package name.
+        3. Adjust `package io.cmichel.boilerplate;` in the top of the `Module.java` and `Package.java` files in `android/src/main//java/package/path` to match it.
+    * Edit the name of your module in 
+
+        ```java
+        @Override
+        public String getName() {
+            return "Boilerplate";
+        }
+        ```
+
+        and adjust it in `index.android.js`
+3. Modify/Build the Project in Android Studio
+    * Start `Android Studio` and select `File -> New -> Import Project` and select the **android** folder of this package.
+    * If you get a `Plugin with id 'android-library' not found` Error, install `android support repository`.
+    * If you get asked to upgrade _gradle_ to a new version, you can skip it.
+
+## Installing it as a library in your main project
+There are many ways to do this, here's the way I do it:
+
+1. Push it to **GitHub**.
+2. Do `npm install --save git+https://github.com/MrToph/react-native-android-library-boilerplate.git` in your main project.
+3. Link the library:
+    * Add the following to `android/settings.gradle`:
+        ```
+        include ':react-native-android-library-boilerplate'
+        project(':react-native-android-library-boilerplate').projectDir = new File(settingsDir, '../node_modules/react-native-android-library-boilerplate/android')
+        ```
+
+    * Add the following to `android/app/build.gradle`:
+        ```xml
+        ...
+
+        dependencies {
+            ...
+            compile project(':react-native-android-library-boilerplate')
+        }
+        ```
+    * Add the following to `android/app/src/main/java/**/MainApplication.java`:
+        ```java
+        package com.motivation;
+
+        import io.cmichel.boilerplate.Package;  // add this for react-native-android-library-boilerplate
+
+        public class MainApplication extends Application implements ReactApplication {
+
+            @Override
+            protected List<ReactPackage> getPackages() {
+                return Arrays.<ReactPackage>asList(
+                    new MainReactPackage(),
+                    new Package()     // add this for react-native-android-library-boilerplate
+                );
+            }
+        }
+        ```
+4. Simply `import/require` it by the name defined in your library's `package.json`:
+
+    ```javascript
+    import Boilerplate from 'react-native-android-library-boilerplate'
+    Boilerplate.show('Boilerplate runs fine', Boilerplate.LONG)
+    ```
+5. You can test and develop your library by importing the `node_modules` library into **Android Studio** if you don't want to install it from _git_ all the time.

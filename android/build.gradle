@@ -1,3 +1,22 @@
+import groovy.json.JsonSlurper
+
+def computeVersionName() {
+    // dynamically retrieve version from package.json
+    def slurper = new JsonSlurper()
+    def json = slurper.parse(file('../package.json'), "utf-8")
+    return json.version
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.5.0'
+    }
+}
+
 apply plugin: 'com.android.library'
 
 android {
@@ -6,23 +25,24 @@ android {
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 25
+        targetSdkVersion 22
         versionCode 1
-        versionName "1.0"
-        ndk {
-            abiFilters "armeabi-v7a", "x86"
-        }
+        // get version name from package.json version
+        versionName computeVersionName()
     }
     lintOptions {
-       warning 'InvalidPackage'
+        abortOnError false
     }
+}
+
+repositories {
+    mavenCentral()
 }
 
 dependencies {
     compile 'com.facebook.react:react-native:+'
     compile 'com.google.code.gson:gson:2.8.2'
     compile 'com.l4digital.fastscroll:fastscroll:1.0.4'
-    compile "com.android.support:appcompat-v7:25.0.4"
 
     compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
     compile 'io.reactivex.rxjava2:rxjava:2.1.6'
