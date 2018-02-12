@@ -54,6 +54,7 @@ public class MultiContactPickerActivity extends AppCompatActivity implements Mat
 
         setTheme(builder.theme);
 
+
         setContentView(R.layout.activity_multi_contact_picker);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);

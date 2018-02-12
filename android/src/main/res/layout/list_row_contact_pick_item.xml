@@ -19,7 +19,7 @@
         android:layout_gravity="center_vertical|center_horizontal"
         android:layout_marginLeft="10dp">
 
-        <com.wafflecopter.multicontactpicker.Views.RoundLetterView
+        <com.joshuapinter.Views.RoundLetterView
             android:id="@+id/vRoundLetterView"
             android:layout_width="40dp"
             android:layout_height="40dp"
