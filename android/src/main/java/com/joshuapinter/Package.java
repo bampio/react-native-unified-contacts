@@ -1,4 +1,4 @@
-package com.joshuapinter;
+package io.cmichel.boilerplate;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.JavaScriptModule;
@@ -10,19 +10,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+public class Package implements ReactPackage {
 
-public class RNUnifiedContactsPackage implements ReactPackage {
-
-    @Override
-    public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-        List<NativeModule> modules = new ArrayList<>();
-
-        modules.add( new RNUnifiedContactsModule(reactContext) );
-
-        return modules;
-    }
-
-    @Override
+    //@Override
     public List<Class<? extends JavaScriptModule>> createJSModules() {
         return Collections.emptyList();
     }
@@ -32,4 +22,13 @@ public class RNUnifiedContactsPackage implements ReactPackage {
         return Collections.emptyList();
     }
 
+    @Override
+    public List<NativeModule> createNativeModules(
+            ReactApplicationContext reactContext) {
+        List<NativeModule> modules = new ArrayList<>();
+
+        modules.add(new Module(reactContext));
+
+        return modules;
+    }
 }
