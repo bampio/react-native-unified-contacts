@@ -1,4 +1,4 @@
-package com.wafflecopter.multicontactpicker;
+package com.joshuapinter;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -18,15 +18,15 @@ import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.joshuapinter.RxContacts.Contact;
+import com.joshuapinter.Views.RoundLetterView;
 import com.l4digital.fastscroll.FastScroller;
-import com.wafflecopter.multicontactpicker.RxContacts.Contact;
-import com.wafflecopter.multicontactpicker.Views.RoundLetterView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
-import static com.wafflecopter.multicontactpicker.MultiContactPickerActivity.EXTRA_RESULT_SELECTION;
+import static com.joshuapinter.MultiContactPickerActivity.EXTRA_RESULT_SELECTION;
 
 class MultiContactPickerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements FastScroller.SectionIndexer, Filterable {
 

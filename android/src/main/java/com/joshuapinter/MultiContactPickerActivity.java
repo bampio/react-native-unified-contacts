@@ -1,4 +1,4 @@
-package com.wafflecopter.multicontactpicker;
+package com.joshuapinter;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -13,10 +13,10 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.joshuapinter.RxContacts.Contact;
+import com.joshuapinter.RxContacts.RxContacts;
 import com.l4digital.fastscroll.FastScrollRecyclerView;
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
-import com.wafflecopter.multicontactpicker.RxContacts.Contact;
-import com.wafflecopter.multicontactpicker.RxContacts.RxContacts;
 
 import java.util.ArrayList;
 import java.util.Collections;

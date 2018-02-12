@@ -1,4 +1,4 @@
-package com.wafflecopter.multicontactpicker.RxContacts;
+package com.joshuapinter.RxContacts;
 
 /*
  * Copyright (C) 2016 Ulrich Raab.

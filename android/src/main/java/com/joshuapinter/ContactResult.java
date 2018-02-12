@@ -1,10 +1,10 @@
-package com.wafflecopter.multicontactpicker;
+package com.joshuapinter;
 
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.wafflecopter.multicontactpicker.RxContacts.Contact;
+import com.joshuapinter.RxContacts.Contact;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +77,7 @@ public class ContactResult implements Parcelable {
     }
 
     @SuppressWarnings("unused")
-    public static final Parcelable.Creator<ContactResult> CREATOR = new Parcelable.Creator<ContactResult>() {
+    public static final Creator<ContactResult> CREATOR = new Creator<ContactResult>() {
         @Override
         public ContactResult createFromParcel(Parcel in) {
             return new ContactResult(in);

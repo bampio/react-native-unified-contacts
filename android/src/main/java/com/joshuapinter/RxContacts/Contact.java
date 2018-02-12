@@ -1,9 +1,9 @@
-package com.wafflecopter.multicontactpicker.RxContacts;
+package com.joshuapinter.RxContacts;
 
 import android.graphics.Color;
 import android.net.Uri;
 
-import com.wafflecopter.multicontactpicker.ColorUtils;
+import com.joshuapinter.ColorUtils;
 
 import java.util.ArrayList;
 import java.util.List;

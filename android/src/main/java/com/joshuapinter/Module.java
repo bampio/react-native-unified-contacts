@@ -20,8 +20,6 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableArray;
 import com.google.gson.Gson;
-import com.wafflecopter.multicontactpicker.ContactResult;
-import com.wafflecopter.multicontactpicker.MultiContactPicker;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

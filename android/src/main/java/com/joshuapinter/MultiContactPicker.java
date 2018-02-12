@@ -1,4 +1,4 @@
-package com.wafflecopter.multicontactpicker;
+package com.joshuapinter;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -7,7 +7,7 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.StyleRes;
 
-import com.wafflecopter.multicontactpicker.RxContacts.Contact;
+import com.joshuapinter.RxContacts.Contact;
 
 import java.io.Serializable;
 import java.util.ArrayList;

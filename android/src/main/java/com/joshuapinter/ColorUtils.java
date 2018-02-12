@@ -1,4 +1,4 @@
-package com.wafflecopter.multicontactpicker;
+package com.joshuapinter;
 
 import android.graphics.Color;
 

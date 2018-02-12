@@ -1,4 +1,4 @@
-package com.wafflecopter.multicontactpicker.Views;
+package com.joshuapinter.Views;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -11,7 +11,8 @@ import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.wafflecopter.multicontactpicker.R;
+import com.joshuapinter.R;
+
 
 /*
 *   Copyright 2014 Pavlos-Petros Tournaris
