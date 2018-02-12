@@ -1,4 +1,4 @@
-package io.cmichel.boilerplate;
+package com.joshuapinter;
 
 /**
  * Created by altaf on 12/02/2018.
