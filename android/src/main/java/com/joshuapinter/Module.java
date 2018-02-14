@@ -109,7 +109,22 @@ public class Module extends ReactContextBaseJavaModule {
                 .bubbleTextColor(Color.WHITE) //Optional - default: White
                 .showPickerForResult(CONTACT_PICKER_REQUEST);
     }
+    
+    @ReactMethod
+    public void userCanAccessContacts(Callback callback){
+        Activity currentActivity = getCurrentActivity();
+        if (currentActivity == null) {
+            callback.invoke("Activity doesn't exist");
+            return;
+        }
 
+        int hasPermission = ContextCompat.checkSelfPermission(currentActivity,"");
+        if(hasPermission == PackageManager.PERMISSION_GRANTED) {
+            callback.invoke(true);
+        } else {
+            callback.invoke(false);
+        }
+    }
 
     @ReactMethod
     public void getContacts(final Callback callback) {
