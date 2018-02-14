@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
+import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -31,7 +32,6 @@ import java.util.Map;
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
-
 public class Module extends ReactContextBaseJavaModule {
 
     private static final String DURATION_SHORT_KEY = "SHORT";
@@ -49,10 +49,9 @@ public class Module extends ReactContextBaseJavaModule {
         public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent intent) {
             if (requestCode == CONTACT_PICKER_REQUEST) {
                 if (resultCode == RESULT_OK) {
-                    ContactResult  results = MultiContactPicker.obtainContact(intent);
+                    ContactResult results = MultiContactPicker.obtainContact(intent);
                     Gson g = new Gson();
                     _callback.invoke(g.toJson(results));
-                    //Log.d("MyTag", results.get(0).getDisplayName());
                 } else if (resultCode == RESULT_CANCELED) {
                     System.out.println("User closed the picker without selecting items.");
                 }
@@ -63,7 +62,7 @@ public class Module extends ReactContextBaseJavaModule {
 
     @Override
     public String getName() {
-        return "Contacts";
+        return "RNUnifiedContacts";
     }
 
     @Override
@@ -90,15 +89,15 @@ public class Module extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void pickContact(ReadableArray ids, Callback callback) {
-        composeBuilder(ids, callback,false);
+        composeBuilder(ids, callback, false);
     }
 
     @ReactMethod
     public void pickContacts(ReadableArray ids, Callback callback) {
-        composeBuilder(ids, callback,true);
+        composeBuilder(ids, callback, true);
     }
 
-    private void composeBuilder(ReadableArray ids, Callback callback,boolean multiSelectEnabled) {
+    private void composeBuilder(ReadableArray ids, Callback callback, boolean multiSelectEnabled) {
         _callback = callback;
         new MultiContactPicker.Builder(getCurrentActivity()) //Activity/fragment context
                 //.theme(R.style.MyCustomPickerTheme) //Optional - default: MultiContactPicker.Azure
@@ -112,17 +111,17 @@ public class Module extends ReactContextBaseJavaModule {
                 .bubbleTextColor(Color.WHITE) //Optional - default: White
                 .showPickerForResult(CONTACT_PICKER_REQUEST);
     }
-    
+
     @ReactMethod
-    public void userCanAccessContacts(Callback callback){
+    public void userCanAccessContacts(Callback callback) {
         Activity currentActivity = getCurrentActivity();
         if (currentActivity == null) {
             callback.invoke("Activity doesn't exist");
             return;
         }
 
-        int hasPermission = ContextCompat.checkSelfPermission(currentActivity,"");
-        if(hasPermission == PackageManager.PERMISSION_GRANTED) {
+        int hasPermission = ContextCompat.checkSelfPermission(currentActivity, "android.permission.READ_CONTACTS");
+        if (hasPermission == PackageManager.PERMISSION_GRANTED) {
             callback.invoke(true);
         } else {
             callback.invoke(false);
@@ -140,11 +139,17 @@ public class Module extends ReactContextBaseJavaModule {
                 ContactsProvider contactsProvider = new ContactsProvider(cr);
                 WritableArray contacts = contactsProvider.getContacts();
 
-                Log.i("Hello ", "Hello " + contacts);
-
                 callback.invoke(contacts);
             }
         });
+    }
+
+    @ReactMethod
+    public void openPrivacySettings() {
+        Intent myAppSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getCurrentActivity().getPackageName()));
+        myAppSettings.addCategory(Intent.CATEGORY_DEFAULT);
+        myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getCurrentActivity().startActivityForResult(myAppSettings, 20000);
     }
 
     @ReactMethod
