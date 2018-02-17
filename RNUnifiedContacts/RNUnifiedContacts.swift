@@ -773,9 +773,21 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     
     func present(viewController: UIViewController) {
         DispatchQueue.main.async { [weak self] in
-            self?.getTopViewController(window: UIApplication.shared.keyWindow)?.present(viewController, animated: true, completion: nil)
+          let controller = self?.getTopViewController(window: UIApplication.shared.keyWindow)
+          print(controller?.navigationController ?? "Hello its null")
+          controller?.present(viewController, animated: true, completion: nil)
         }
     }
+
+  func push(viewController: UIViewController) {
+    DispatchQueue.main.async { [weak self] in
+      let controller = self?.getTopViewController(window: UIApplication.shared.keyWindow)
+      print(controller?.navigationController ?? "Hello its null")
+      controller?.navigationController?.pushViewController(viewController, animated: true)
+      //controller?.present(viewController, animated: true, completion: nil)
+    }
+  }
+  
     func getTopViewController(window: UIWindow?) -> UIViewController? {
         if let window = window {
             var top = window.rootViewController
@@ -843,8 +855,8 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
         let cvc = CNContactViewController(for: cNContact!)
         cvc.delegate = self
         cvc.allowsEditing = true
-        let navigationController = UINavigationController(rootViewController: cvc)
-        present(viewController: navigationController)
+        //present(viewController: navigationController)
+      push(viewController: cvc)
     }
     
     
