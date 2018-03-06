@@ -50,6 +50,7 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     CNContactUrlAddressesKey,
     ]
   
+  let contactStore = CNContactStore()
   
   @objc func userCanAccessContacts(_ callback: (Array<Bool>) -> ()) -> Void {
     let authorizationStatus = CNContactStore.authorizationStatus(for: CNEntityType.contacts)
@@ -99,36 +100,38 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       callback( ["Could not find a contact with the identifier ".appending(identifier), NSNull()] )
       return
     }
-    
-    
     let contactAsDictionary = convertCNContactToDictionary( cNContact! )
     var response = ""
-    
-    
-    
     do {
       let jsonData = try JSONSerialization.data(withJSONObject: contactAsDictionary, options: .prettyPrinted)
-      // here "jsonData" is the dictionary encoded in JSON data
-      
-      //let decoded = try JSONSerialization.jsonObject(with: jsonData, options: [])
-      // here "decoded" is of type `Any`, decoded from JSON data
-      
       response = NSString(data:jsonData,encoding :String.Encoding.utf8.rawValue)! as String
       
-      
-      
       let sha256Contacts = Digest.sha256(response.bytes).toHexString()
-      print(sha256Contacts)
       //callback(sha256Contacts)
       callback( [NSNull(), sha256Contacts] )
       //callback("Hello World")
     } catch {
-      print(error.localizedDescription)
       callback( ["Something bad happened ".appending(identifier), NSNull()] )
     }
   }
   
   @objc func getGroup(_ identifier: String, callback: (NSArray) -> () ) -> Void {
+    do {
+      var cNGroups = [CNGroup]()
+      let predicate = CNGroup.predicateForGroupsInContainer(withIdentifier: getActiveIdentifier())
+      try cNGroups = contactStore.groups(matching: predicate)
+      let group = cNGroups.first(where: {$0.identifier == identifier})
+      if group == nil{
+        callback( ["Could not find a group with the identifier ".appending(identifier), NSNull()] )
+      }else{
+        callback([NSNull(), group as Any])
+      }
+    } catch let error as NSError {
+      callback([error.localizedDescription, NSNull()])
+    }
+    
+    
+    
     let cNGroup = getCNGroup( identifier )
     if ( cNGroup == nil ) {
       callback( ["Could not find a group with the identifier ".appending(identifier), NSNull()] )
@@ -139,48 +142,75 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     callback( [NSNull(), groupAsDictionary] )
   }
   
-  // Pseudo overloads getContacts but with no searchText.
-  // Makes it easy to get all the Contacts with not passing anything.
-  // NOTE: I tried calling the two methods the same but it barfed. It should be
-  //   allowed but perhaps how React Native is handling it, it won't work. PR
-  //   possibility.
-  //
-  @objc func getContacts(_ callback: (NSObject) -> ()) -> Void {
-    searchContacts(nil) { (result: NSObject) in
-      callback(result)
+  
+  @objc func getContacts(_ callback: @escaping (NSObject) -> ()) -> Void {
+    var result = [CNContact]()
+    let request = CNContactFetchRequest(keysToFetch:self.keysToFetch as [CNKeyDescriptor])
+    request.predicate = CNContact.predicateForContactsInContainer(withIdentifier: getActiveIdentifier())
+    do {
+      try self.store.enumerateContacts(with: request, usingBlock: {(contact, status) -> Void in
+        result.append(contact)
+      })
+    } catch let error as NSError {
+      print("Error \(error.localizedDescription)")
+    }
+    DispatchQueue.main.async {
+      callback(result as NSObject)
     }
   }
-  
+  @objc func searchContacts(_ searchText: String?, callback: (NSArray) -> ()) -> Void {
+    do {
+      var cNContacts = [CNContact]()
+      let fetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch as [CNKeyDescriptor])
+      fetchRequest.predicate = CNContact.predicateForContactsInContainer(withIdentifier: getActiveIdentifier())
+      fetchRequest.sortOrder = CNContactSortOrder.givenName
+      try contactStore.enumerateContacts(with: fetchRequest) { (cNContact, pointer) -> Void in
+        if searchText == nil {
+          // Add all Contacts if no searchText is provided.
+          cNContacts.append(cNContact)
+        } else {
+          // If the Contact contains the search string then add it.
+          if self.contactContainsText( cNContact, searchText: searchText! ) {
+            cNContacts.append(cNContact)
+          }
+        }
+      }
+      var contacts = [NSDictionary]();
+      for cNContact in cNContacts {
+        contacts.append( convertCNContactToDictionary(cNContact) )
+      }
+      callback([NSNull(), contacts])
+    } catch let error as NSError {
+      callback([error.localizedDescription, NSNull()])
+    }
+  }
+
   @objc func getGroups(_ callback: (NSArray) -> ()) -> Void {
-    let contactStore = CNContactStore()
     do {
       var cNGroups = [CNGroup]()
-      
-      try cNGroups = contactStore.groups(matching: nil)
-      
+      let predicate = CNGroup.predicateForGroupsInContainer(withIdentifier: getActiveIdentifier())
+      try cNGroups = contactStore.groups(matching: predicate)
       var groups = [NSDictionary]();
       for cNGroup in cNGroups {
         groups.append( convertCNGroupToDictionary(cNGroup) )
       }
-      
       callback([NSNull(), groups])
     } catch let error as NSError {
-      NSLog("Problem getting groups.")
-      NSLog(error.localizedDescription)
-      
       callback([error.localizedDescription, NSNull()])
     }
   }
   
   @objc func contactsInGroup(_ identifier: String, callback: (NSArray) -> ()) -> Void {
-    let contactStore = CNContactStore()
     do {
       var cNContacts = [CNContact]()
       
       let predicate = CNContact.predicateForContactsInGroup(withIdentifier: identifier)
+      let gPredicate = CNGroup.predicateForGroupsInContainer(withIdentifier: getActiveIdentifier())
+      let andPredicate = NSCompoundPredicate(type: NSCompoundPredicate.LogicalType.and, subpredicates: [predicate, gPredicate])
+
       let fetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch as [CNKeyDescriptor])
       
-      fetchRequest.predicate = predicate
+      fetchRequest.predicate = andPredicate
       fetchRequest.sortOrder = CNContactSortOrder.userDefault
       
       try contactStore.enumerateContacts(with: fetchRequest) { (cNContact, pointer) -> Void in
@@ -194,51 +224,13 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       
       callback([NSNull(), contacts])
     } catch let error as NSError {
-      NSLog("Problem getting contacts.")
-      NSLog(error.localizedDescription)
-      
       callback([error.localizedDescription, NSNull()])
     }
   }
   
-  @objc func searchContacts(_ searchText: String?, callback: (NSArray) -> ()) -> Void {
-    let contactStore = CNContactStore()
-    do {
-      var cNContacts = [CNContact]()
-      
-      let fetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch as [CNKeyDescriptor])
-      
-      fetchRequest.sortOrder = CNContactSortOrder.givenName
-      
-      try contactStore.enumerateContacts(with: fetchRequest) { (cNContact, pointer) -> Void in
-        if searchText == nil {
-          // Add all Contacts if no searchText is provided.
-          cNContacts.append(cNContact)
-        } else {
-          // If the Contact contains the search string then add it.
-          if self.contactContainsText( cNContact, searchText: searchText! ) {
-            cNContacts.append(cNContact)
-          }
-        }
-      }
-      
-      var contacts = [NSDictionary]();
-      for cNContact in cNContacts {
-        contacts.append( convertCNContactToDictionary(cNContact) )
-      }
-      
-      callback([NSNull(), contacts])
-    } catch let error as NSError {
-      NSLog("Problem getting contacts.")
-      NSLog(error.localizedDescription)
-      
-      callback([error.localizedDescription, NSNull()])
-    }
-  }
+
   
   @objc func addContact(_ contactData: NSDictionary, callback: (NSArray) -> () ) -> Void {
-    
-    let contactStore   = CNContactStore()
     let mutableContact = CNMutableContact()
     let saveRequest    = CNSaveRequest()
     
@@ -278,17 +270,12 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       
     }
     catch let error as NSError {
-      NSLog("Problem creating contact.")
-      NSLog(error.localizedDescription)
-      
       callback( [error.localizedDescription, false] )
     }
     
   }
   
   @objc func addGroup(_ groupData: NSDictionary, callback: (NSArray) -> () ) -> Void {
-    
-    let contactStore   = CNContactStore()
     let mutableGroup = CNMutableGroup()
     let saveRequest    = CNSaveRequest()
     
@@ -298,15 +285,10 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     
     do {
       saveRequest.add(mutableGroup, toContainerWithIdentifier:nil)
-      
       try contactStore.execute(saveRequest)
-      
       callback( [NSNull(), true] )
     }
     catch let error as NSError {
-      NSLog("Problem creating group.")
-      NSLog(error.localizedDescription)
-      
       callback( [error.localizedDescription, false] )
     }
     
@@ -315,11 +297,7 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
   
   
   @objc func updateContact(_ identifier: String, contactData: NSDictionary, callback: (NSArray) -> () ) -> Void {
-    
-    let contactStore = CNContactStore()
-    
     let saveRequest = CNSaveRequest()
-    
     let cNContact = getCNContact(identifier, keysToFetch: keysToFetch as [CNKeyDescriptor])
     
     let mutableContact = cNContact!.mutableCopy() as! CNMutableContact
@@ -367,9 +345,6 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       
     }
     catch let error as NSError {
-      NSLog("Problem updating Contact with identifier: " + identifier)
-      NSLog(error.localizedDescription)
-      
       callback( [error.localizedDescription, false] )
     }
     
@@ -377,9 +352,6 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
   }
   
   @objc func updateGroup(_ identifier: String, groupData: NSDictionary, callback: (NSArray) -> () ) -> Void {
-    
-    let contactStore = CNContactStore()
-    
     let saveRequest = CNSaveRequest()
     
     let cNGroup = getCNGroup(identifier)
@@ -398,69 +370,40 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       callback( [NSNull(), true] )
     }
     catch let error as NSError {
-      NSLog("Problem updating group with identifier: " + identifier)
-      NSLog(error.localizedDescription)
-      
       callback( [error.localizedDescription, false] )
     }
   }
   
   @objc func deleteContact(_ identifier: String, callback: (NSArray) -> () ) -> Void {
-    
-    let contactStore = CNContactStore()
-    
     let cNContact = getCNContact( identifier, keysToFetch: keysToFetch as [CNKeyDescriptor] )
-    
     let saveRequest = CNSaveRequest()
-    
     let mutableContact = cNContact!.mutableCopy() as! CNMutableContact
-    
     saveRequest.delete(mutableContact)
-    
     do {
-      
       try contactStore.execute(saveRequest)
-      
       callback( [NSNull(), true] )
-      
     }
     catch let error as NSError {
-      
-      NSLog("Problem deleting unified contact with identifier: " + identifier)
-      NSLog(error.localizedDescription)
-      
       callback( [error.localizedDescription, false] )
     }
-    
   }
   
   @objc func deleteGroup(_ identifier: String, callback: (NSArray) -> () ) -> Void {
-    
-    let contactStore = CNContactStore()
-    
     let cNGroup = getCNGroup(identifier)
-    
     let saveRequest = CNSaveRequest()
-    
     let mutableGroup = cNGroup!.mutableCopy() as! CNMutableGroup
-    
     saveRequest.delete(mutableGroup)
-    
     do {
       try contactStore.execute(saveRequest)
       callback( [NSNull(), true] )
     }
     catch let error as NSError {
-      NSLog("Problem deleting group with identifier: " + identifier)
-      NSLog(error.localizedDescription)
-      
       callback( [error.localizedDescription, false] )
     }
     
   }
   
   @objc func addContactsToGroup(_ identifier: String, contactIdentifiers: [NSString], callback: (NSArray) -> () ) -> Void {
-    let contactStore = CNContactStore()
     let cNGroup = getCNGroup(identifier)
     let saveRequest = CNSaveRequest()
     let mutableGroup = cNGroup!.mutableCopy() as! CNMutableGroup
@@ -477,15 +420,11 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       callback( [NSNull(), true] )
     }
     catch let error as NSError {
-      NSLog("Problem adding contacts to group with identifier: " + identifier)
-      NSLog(error.localizedDescription)
-      
       callback( [error.localizedDescription, false] )
     }
   }
   
   @objc func removeContactsFromGroup(_ identifier: String, contactIdentifiers: [NSString], callback: (NSArray) -> () ) -> Void {
-    let contactStore = CNContactStore()
     let cNGroup = getCNGroup(identifier)
     let saveRequest = CNSaveRequest()
     let mutableGroup = cNGroup!.mutableCopy() as! CNMutableGroup
@@ -502,9 +441,6 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       callback( [NSNull(), true] )
     }
     catch let error as NSError {
-      NSLog("Problem removing contacts from group with identifier: " + identifier)
-      NSLog(error.localizedDescription)
-      
       callback( [error.localizedDescription, false] )
     }
   }
@@ -525,14 +461,12 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
   }
   
   func getCNGroup( _ identifier: String ) -> CNGroup? {
-    let contactStore = CNContactStore()
+    
     do {
       let predicate = CNGroup.predicateForGroups(withIdentifiers: [identifier])
       let cNGroup = try contactStore.groups(matching: predicate).first
       return cNGroup
     } catch let error as NSError {
-      NSLog("Problem getting group with identifier: " + identifier)
-      NSLog(error.localizedDescription)
       return nil
     }
   }
@@ -821,12 +755,14 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     let vc = CNContactPickerViewController()
     contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
     vc.delegate = contactsDelegate
-    
     vc.predicateForEnablingContact = NSPredicate(format: "!(identifier IN %@)", contactIdentifiers)
     vc.displayedPropertyKeys = keysToFetch
     
     present(viewController: vc)
   }
+  
+
+  
   func done() {
     contactDelegate = nil
     contactsDelegate = nil
@@ -837,5 +773,51 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     rController.identifier = identifier
     let myViewController = UINavigationController(rootViewController: rController)
     present(viewController: myViewController)
+  }
+  
+  func getSources(_ callback: @escaping (NSArray) -> ()) -> Void {
+    contactStore.requestAccess(for: .contacts, completionHandler: { (granted, error) in
+      guard granted else {
+        let alert = UIAlertController(title: "Can't access contact", message: "Please go to Settings to enable contact permissions.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        return
+      }
+    })
+    var allContainers: [CNContainer] = []
+    do {
+      allContainers = try contactStore.containers(matching: nil)
+      callback( [NSNull(), allContainers] )
+    } catch {
+      callback( ["Error fetching containers", allContainers] )
+      print("Error fetching containers")
+    }
+  }
+  let currentLevelKey = "identifier"
+  let preferences = UserDefaults.standard
+  func setActiveSource(_ identifier:String,callback: @escaping (NSArray) -> ()) -> Void {
+    preferences.set(identifier, forKey: currentLevelKey)
+    preferences.synchronize()
+    callback( [NSNull(), "Active source created successfully"] )
+  }
+  func getActiveSource(_ callback: @escaping (NSArray) -> ()) -> Void {
+    if preferences.object(forKey: currentLevelKey) == nil {
+      callback( ["Unable to find active source", NSNull()] )
+    } else {
+      let identifier = preferences.string(forKey:  currentLevelKey)
+      callback( [NSNull(), identifier as Any] )
+    }
+  }
+  func clearActiveSource(_ callback: @escaping (NSArray) -> ()) -> Void {
+    let preferences = UserDefaults.standard
+    preferences.set(nil, forKey: currentLevelKey)
+    preferences.synchronize()
+    callback( [NSNull(), "Cleared active source successfully"] )
+  }
+  func getActiveIdentifier() -> String {
+    var identifier = preferences.string(forKey:  currentLevelKey)
+    if identifier == nil || identifier==""{
+      identifier = nil
+    }
+    return identifier!
   }
 }
