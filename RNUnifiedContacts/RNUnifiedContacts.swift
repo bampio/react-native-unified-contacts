@@ -13,7 +13,6 @@ import Foundation
 @objc(RNUnifiedContacts)
 class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewControllerDelegate {
   //  iOS Reference: https://developer.apple.com/library/ios/documentation/Contacts/Reference/CNContact_Class/#//apple_ref/doc/constant_group/Metadata_Keys
-  fileprivate var store: CNContactStore!
   var contactDelegate: PickContactDelegate?
   var contactsDelegate: PickContactsDelegate?
   
@@ -118,7 +117,11 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
   @objc func getGroup(_ identifier: String, callback: (NSArray) -> () ) -> Void {
     do {
       var cNGroups = [CNGroup]()
-      let predicate = CNGroup.predicateForGroupsInContainer(withIdentifier: getActiveIdentifier())
+      var sourceId = getActiveIdentifier()
+      if sourceId == nil{
+        sourceId = contactStore.defaultContainerIdentifier()
+      }
+      let predicate = CNGroup.predicateForGroupsInContainer(withIdentifier: sourceId!)
       try cNGroups = contactStore.groups(matching: predicate)
       let group = cNGroups.first(where: {$0.identifier == identifier})
       if group == nil{
@@ -146,9 +149,14 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
   @objc func getContacts(_ callback: @escaping (NSObject) -> ()) -> Void {
     var result = [CNContact]()
     let request = CNContactFetchRequest(keysToFetch:self.keysToFetch as [CNKeyDescriptor])
-    request.predicate = CNContact.predicateForContactsInContainer(withIdentifier: getActiveIdentifier())
+    if getActiveIdentifier() != nil{
+      request.predicate = CNContact.predicateForContactsInContainer(withIdentifier: getActiveIdentifier()!)
+    }else{
+      request.predicate = CNContact.predicateForContactsInContainer(withIdentifier: contactStore.defaultContainerIdentifier())
+    }
+
     do {
-      try self.store.enumerateContacts(with: request, usingBlock: {(contact, status) -> Void in
+      try self.contactStore.enumerateContacts(with: request, usingBlock: {(contact, status) -> Void in
         result.append(contact)
       })
     } catch let error as NSError {
@@ -162,7 +170,13 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     do {
       var cNContacts = [CNContact]()
       let fetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch as [CNKeyDescriptor])
-      fetchRequest.predicate = CNContact.predicateForContactsInContainer(withIdentifier: getActiveIdentifier())
+      let sourceId = getActiveIdentifier()
+      if sourceId == nil{
+        fetchRequest.predicate = CNContact.predicateForContactsInContainer(withIdentifier: contactStore.defaultContainerIdentifier())
+      }else{
+        fetchRequest.predicate = CNContact.predicateForContactsInContainer(withIdentifier: getActiveIdentifier()!)
+      }
+      
       fetchRequest.sortOrder = CNContactSortOrder.givenName
       try contactStore.enumerateContacts(with: fetchRequest) { (cNContact, pointer) -> Void in
         if searchText == nil {
@@ -188,7 +202,11 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
   @objc func getGroups(_ callback: (NSArray) -> ()) -> Void {
     do {
       var cNGroups = [CNGroup]()
-      let predicate = CNGroup.predicateForGroupsInContainer(withIdentifier: getActiveIdentifier())
+      var sourceId = getActiveIdentifier()
+      if sourceId == nil{
+        sourceId = contactStore.defaultContainerIdentifier()
+      }
+      let predicate = CNGroup.predicateForGroupsInContainer(withIdentifier: sourceId!)
       try cNGroups = contactStore.groups(matching: predicate)
       var groups = [NSDictionary]();
       for cNGroup in cNGroups {
@@ -205,7 +223,11 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       var cNContacts = [CNContact]()
       
       let predicate = CNContact.predicateForContactsInGroup(withIdentifier: identifier)
-      let gPredicate = CNGroup.predicateForGroupsInContainer(withIdentifier: getActiveIdentifier())
+      var sourceId = getActiveIdentifier()
+      if sourceId == nil{
+        sourceId = contactStore.defaultContainerIdentifier()
+      }
+      let gPredicate = CNGroup.predicateForGroupsInContainer(withIdentifier: sourceId!)
       let andPredicate = NSCompoundPredicate(type: NSCompoundPredicate.LogicalType.and, subpredicates: [predicate, gPredicate])
 
       let fetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch as [CNKeyDescriptor])
@@ -333,22 +355,14 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
         mutableContact.emailAddresses.append( emailAddressAsCNLabeledValue )
       }
     }
-    
-    
     do {
-      
       saveRequest.update(mutableContact)
-      
       try contactStore.execute(saveRequest)
-      
       callback( [NSNull(), true] )
-      
     }
     catch let error as NSError {
       callback( [error.localizedDescription, false] )
     }
-    
-    
   }
   
   @objc func updateGroup(_ identifier: String, groupData: NSDictionary, callback: (NSArray) -> () ) -> Void {
@@ -748,19 +762,56 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     vc.delegate = contactDelegate
     vc.predicateForEnablingContact = NSPredicate(format: "!(identifier IN %@)", contactIdentifiers)
     
+    
     vc.displayedPropertyKeys = keysToFetch
     present(viewController: vc)
   }
+//  @objc func pickContacts(_ contactIdentifiers:[String], callback: @escaping (NSArray) -> () ) -> Void {
+//    let vc = CNContactPickerViewController()
+//    contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
+//    vc.delegate = contactsDelegate
+//
+//    let predicateContainer = CNContact.predicateForContactsInContainer(withIdentifier: getActiveIdentifier())
+//    let predicateEnabling = NSPredicate(format: "!(identifier IN %@)", contactIdentifiers)
+//
+//    let andPredicate = NSCompoundPredicate(type: NSCompoundPredicate.LogicalType.and, subpredicates: [predicateContainer, predicateEnabling])
+//
+//    vc.predicateForEnablingContact = andPredicate
+//    //vc.predicateForEnablingContact = NSPredicate(format: "!(identifier IN %@)", contactIdentifiers)
+//    vc.displayedPropertyKeys = keysToFetch
+//
+//    present(viewController: vc)
+//  }
+  
+  
   @objc func pickContacts(_ contactIdentifiers:[String], callback: @escaping (NSArray) -> () ) -> Void {
     let vc = CNContactPickerViewController()
     contactsDelegate = PickContactsDelegate(delegate: self,callback :callback )
     vc.delegate = contactsDelegate
-    vc.predicateForEnablingContact = NSPredicate(format: "!(identifier IN %@)", contactIdentifiers)
     vc.displayedPropertyKeys = keysToFetch
+    let containerId = getActiveIdentifier()
     
+    if containerId != nil {
+      var  contactIds = [String]()
+      
+      let request = CNContactFetchRequest(keysToFetch:self.keysToFetch as [CNKeyDescriptor])
+      request.predicate = CNContact.predicateForContactsInContainer(withIdentifier: getActiveIdentifier()!)
+      do {
+        try self.contactStore.enumerateContacts(with: request, usingBlock: {(contact, status) -> Void in
+          if(!contactIdentifiers.contains(contact.identifier)){
+            contactIds.append(contact.identifier)
+          }
+        })
+        vc.predicateForEnablingContact = NSPredicate(format: "(identifier IN %@)", contactIds)
+      } catch let error as NSError {
+        print("Error \(error.localizedDescription)")
+      }
+    }
+    else {
+      vc.predicateForEnablingContact = NSPredicate(format: "!(identifier IN %@)", contactIdentifiers)
+    }
     present(viewController: vc)
   }
-  
 
   
   func done() {
@@ -813,11 +864,12 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     preferences.synchronize()
     callback( [NSNull(), "Cleared active source successfully"] )
   }
-  func getActiveIdentifier() -> String {
-    var identifier = preferences.string(forKey:  currentLevelKey)
+  func getActiveIdentifier() -> String? {
+    let identifier = preferences.string(forKey:  currentLevelKey)
+    
     if identifier == nil || identifier==""{
-      identifier = nil
+      return nil
     }
-    return identifier!
+    return identifier
   }
 }
