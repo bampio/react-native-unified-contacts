@@ -84,9 +84,9 @@ RCT_EXPORT_METHOD(openPrivacySettings) {
 
 //Picker  Contacts.openContact
 
+RCT_EXTERN_METHOD(getSources:(RCTResponseSenderBlock)callback);
 
 RCT_EXTERN_METHOD(pickContact:(NSArray *)contactIdentifiers callback:(RCTResponseSenderBlock)callback);
-
 
 RCT_EXTERN_METHOD(pickContacts:(NSArray *)contactIdentifiers callback:(RCTResponseSenderBlock)callback);
 
