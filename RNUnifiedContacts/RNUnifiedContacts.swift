@@ -907,7 +907,4 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     }
     return identifier
   }
-  @objc func getContactId(_ first:String,last:String,middle:String,callback: @escaping (NSArray) -> ()) -> Void {
-    
-  }
 }
