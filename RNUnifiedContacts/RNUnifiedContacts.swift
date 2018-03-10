@@ -517,12 +517,16 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       }
     }
   }
-  @objc func getContactId(_ firstName: String?,lastName:String?, callback: (NSArray) -> ()) -> Void {
+  
+  //RCT_EXTERN_METHOD(getContactId:(NSString *)first last:(NSString *)last callback:(RCTResponseSenderBlock)callback);
+
+  
+  @objc func getContactId(_ first: String?,last:String?, callback: (NSArray) -> ()) -> Void {
     do {
       var cNContacts = [CNContact]()
       let defaultValue = ""
       let fetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch as [CNKeyDescriptor])
-      var fullName = "\(firstName ?? defaultValue) \(lastName ?? defaultValue)"
+      var fullName = "\(first ?? defaultValue) \(last ?? defaultValue)"
       fullName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
       
       let sourceId = getActiveIdentifier()
