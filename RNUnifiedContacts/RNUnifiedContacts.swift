@@ -447,7 +447,6 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       for contactIdentifier in contactIdentifiers {
         let cNContact = getCNContact(contactIdentifier as String, keysToFetch: keysToFetch as [CNKeyDescriptor])
         let mutableContact = cNContact!.mutableCopy() as! CNMutableContact
-        
         saveRequest.removeMember(mutableContact, from: mutableGroup)
       }
       
@@ -516,6 +515,39 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       if (!trimmed.isEmpty) {
         dict[key] = value
       }
+    }
+  }
+  @objc func getContactId(_ firstName: String?,lastName:String?, callback: (NSArray) -> ()) -> Void {
+    do {
+      var cNContacts = [CNContact]()
+      let defaultValue = ""
+      let fetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch as [CNKeyDescriptor])
+      var fullName = "\(firstName ?? defaultValue) \(lastName ?? defaultValue)"
+      fullName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
+      
+      let sourceId = getActiveIdentifier()
+      if sourceId == nil{
+        fetchRequest.predicate = CNContact.predicateForContactsInContainer(withIdentifier: contactStore.defaultContainerIdentifier())
+      }else{
+        fetchRequest.predicate = CNContact.predicateForContactsInContainer(withIdentifier: getActiveIdentifier()!)
+      }
+      
+      try contactStore.enumerateContacts(with: fetchRequest) { (cNContact, pointer) -> Void in
+        if fullName.count == 0 {
+          cNContacts.append(cNContact)
+        } else {
+          if self.contactContainsText( cNContact, searchText: fullName ) {
+            cNContacts.append(cNContact)
+          }
+        }
+      }
+      if cNContacts.count > 0{
+        callback([NSNull(), cNContacts.first?.identifier])
+      }else{
+        callback([NSNull(), NSNull()])
+      }
+    } catch let error as NSError {
+      callback([error.localizedDescription, NSNull()])
     }
   }
   
@@ -826,7 +858,7 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     present(viewController: myViewController)
   }
   
-  func getSources(_ callback: @escaping (NSArray) -> ()) -> Void {
+  @objc func getSources(_ callback: @escaping (NSArray) -> ()) -> Void {
     contactStore.requestAccess(for: .contacts, completionHandler: { (granted, error) in
       guard granted else {
         let alert = UIAlertController(title: "Can't access contact", message: "Please go to Settings to enable contact permissions.", preferredStyle: .alert)
@@ -845,12 +877,12 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
   }
   let currentLevelKey = "identifier"
   let preferences = UserDefaults.standard
-  func setActiveSource(_ identifier:String,callback: @escaping (NSArray) -> ()) -> Void {
+  @objc func setActiveSource(_ identifier:String,callback: @escaping (NSArray) -> ()) -> Void {
     preferences.set(identifier, forKey: currentLevelKey)
     preferences.synchronize()
     callback( [NSNull(), "Active source created successfully"] )
   }
-  func getActiveSource(_ callback: @escaping (NSArray) -> ()) -> Void {
+  @objc func getActiveSource(_ callback: @escaping (NSArray) -> ()) -> Void {
     if preferences.object(forKey: currentLevelKey) == nil {
       callback( ["Unable to find active source", NSNull()] )
     } else {
@@ -858,18 +890,20 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       callback( [NSNull(), identifier as Any] )
     }
   }
-  func clearActiveSource(_ callback: @escaping (NSArray) -> ()) -> Void {
+  @objc func clearActiveSource(_ callback: @escaping (NSArray) -> ()) -> Void {
     let preferences = UserDefaults.standard
     preferences.set(nil, forKey: currentLevelKey)
     preferences.synchronize()
     callback( [NSNull(), "Cleared active source successfully"] )
   }
-  func getActiveIdentifier() -> String? {
+  @objc func getActiveIdentifier() -> String? {
     let identifier = preferences.string(forKey:  currentLevelKey)
-    
-    if identifier == nil || identifier==""{
+    if identifier == nil || identifier=="" {
       return nil
     }
     return identifier
+  }
+  @objc func getContactId(_ first:String,last:String,middle:String,callback: @escaping (NSArray) -> ()) -> Void {
+    
   }
 }
