@@ -856,10 +856,10 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
   }
   
   @objc func openContact(_ identifier : String) {
-    let rController = ContactDetailViewController(nibName: "ContactDetailViewController", bundle: nil)
-    rController.identifier = identifier
-    let myViewController = UINavigationController(rootViewController: rController)
-    present(viewController: myViewController)
+//    let rController = ContactDetailViewController(nibName: "ContactDetailViewController", bundle: nil)
+//    rController.identifier = identifier
+//    let myViewController = UINavigationController(rootViewController: rController)
+//    present(viewController: myViewController)
   }
   
   @objc func getSources(_ callback: @escaping (NSArray) -> ()) -> Void {
@@ -872,8 +872,13 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
     })
     var allContainers: [CNContainer] = []
     do {
-      allContainers = try contactStore.containers(matching: nil)
-      callback( [NSNull(), allContainers] )
+      allContainers = try contactStore.containers(matching: nil) //try contactStore.containers(matching: nil)
+      
+      var sDictionary = [[String:Any]]()
+      for s in allContainers {
+        sDictionary.append(["identifier": s.identifier, "title": s.name,"type":s.type.rawValue])
+      }
+      callback( [NSNull(), sDictionary] )
     } catch {
       callback( ["Error fetching containers", allContainers] )
       print("Error fetching containers")
