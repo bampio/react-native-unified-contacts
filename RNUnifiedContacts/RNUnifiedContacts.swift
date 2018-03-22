@@ -862,6 +862,8 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
 //    present(viewController: myViewController)
   }
   
+  let sourcesCollection = ["unassigned","local","exchange","cardDAV"]
+  
   @objc func getSources(_ callback: @escaping (NSArray) -> ()) -> Void {
     contactStore.requestAccess(for: .contacts, completionHandler: { (granted, error) in
       guard granted else {
@@ -876,7 +878,7 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       
       var sDictionary = [[String:Any]]()
       for s in allContainers {
-        sDictionary.append(["identifier": s.identifier, "title": s.name,"type":s.type.rawValue])
+        sDictionary.append(["identifier": s.identifier, "title": s.name,"type":self.sourcesCollection[s.type.rawValue]])
       }
       callback( [NSNull(), sDictionary] )
     } catch {
