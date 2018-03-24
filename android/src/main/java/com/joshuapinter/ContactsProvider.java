@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import static android.provider.ContactsContract.CommonDataKinds.Contactables;
 import static android.provider.ContactsContract.CommonDataKinds.Email;
 import static android.provider.ContactsContract.CommonDataKinds.Organization;
@@ -29,6 +30,7 @@ import static android.provider.ContactsContract.CommonDataKinds.Phone;
 import static android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import static android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import static android.provider.ContactsContract.CommonDataKinds.Event;
+
 import android.util.Log;
 
 public class ContactsProvider {
@@ -79,9 +81,11 @@ public class ContactsProvider {
     }};
 
     private final ContentResolver contentResolver;
+    private final Module module;
 
-    public ContactsProvider(ContentResolver contentResolver) {
+    public ContactsProvider(ContentResolver contentResolver,Module module) {
         this.contentResolver = contentResolver;
+        this.module = module;
     }
 
     public WritableArray getContactsMatchingString(String searchString) {
@@ -133,13 +137,38 @@ public class ContactsProvider {
 
         Map<String, Contact> everyoneElse;
         {
-            Cursor cursor = contentResolver.query(
-                    ContactsContract.Data.CONTENT_URI,
-                    FULL_PROJECTION.toArray(new String[FULL_PROJECTION.size()]),
-                    ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR "+ ContactsContract.Data.MIMETYPE + "=?",
-                    new String[]{Email.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE, StructuredName.CONTENT_ITEM_TYPE, Organization.CONTENT_ITEM_TYPE, StructuredPostal.CONTENT_ITEM_TYPE, Event.CONTENT_ITEM_TYPE},
-                    null
-            );
+            Cursor cursor;
+            String id = this.module.getSourceId();
+
+            if(id.trim().length() == 0){
+                cursor = contentResolver.query(ContactsContract.Data.CONTENT_URI, FULL_PROJECTION.toArray(new String[FULL_PROJECTION.size()]),
+                        ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR "
+                                + ContactsContract.Data.MIMETYPE + "=? OR "+ ContactsContract.Data.MIMETYPE + "=? OR "
+                                + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? ",
+                        new String[]
+                            {
+                                Email.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE, StructuredName.CONTENT_ITEM_TYPE,
+                                Organization.CONTENT_ITEM_TYPE, StructuredPostal.CONTENT_ITEM_TYPE, Event.CONTENT_ITEM_TYPE
+                            },
+                        null
+                );
+            }else{
+                cursor = contentResolver.query(ContactsContract.Data.CONTENT_URI, FULL_PROJECTION.toArray(new String[FULL_PROJECTION.size()]),
+                        ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR "
+                                + ContactsContract.Data.MIMETYPE + "=? OR "+ ContactsContract.Data.MIMETYPE + "=? OR "
+                                + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? AND "
+                                + ContactsContract.RawContacts.ACCOUNT_TYPE +"=?" ,
+                        new String[]
+                            {
+                                Email.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE,
+                                StructuredName.CONTENT_ITEM_TYPE,Organization.CONTENT_ITEM_TYPE,
+                                StructuredPostal.CONTENT_ITEM_TYPE,Event.CONTENT_ITEM_TYPE,
+                                id
+                            },
+                        null
+                );
+            }
+
 
             try {
                 everyoneElse = loadContactsFrom(cursor);
@@ -160,6 +189,24 @@ public class ContactsProvider {
 
         return contacts;
     }
+
+    void getCursor(){
+
+        Cursor cursor = contentResolver.query(ContactsContract.Data.CONTENT_URI, FULL_PROJECTION.toArray(new String[FULL_PROJECTION.size()]),
+                ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR "
+                        + ContactsContract.Data.MIMETYPE + "=? OR "+ ContactsContract.Data.MIMETYPE + "=? OR "
+                        + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? AND "
+                        + ContactsContract.RawContacts.ACCOUNT_TYPE +"=?" ,
+                new String[]
+                        {
+                                Email.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE, StructuredName.CONTENT_ITEM_TYPE,
+                                Organization.CONTENT_ITEM_TYPE, StructuredPostal.CONTENT_ITEM_TYPE, Event.CONTENT_ITEM_TYPE
+                        },
+                null
+        );
+
+    }
+
 
     @NonNull
     private Map<String, Contact> loadContactsFrom(Cursor cursor) {
@@ -190,7 +237,7 @@ public class ContactsProvider {
                 contact.displayName = name;
             }
 
-            if(TextUtils.isEmpty(contact.photoUri)) {
+            if (TextUtils.isEmpty(contact.photoUri)) {
                 String rawPhotoURI = cursor.getString(cursor.getColumnIndex(Contactables.PHOTO_URI));
                 if (!TextUtils.isEmpty(rawPhotoURI)) {
                     contact.photoUri = rawPhotoURI;
@@ -313,8 +360,8 @@ public class ContactsProvider {
         private String prefix = "";
         private String suffix = "";
         private String company = "";
-        private String jobTitle ="";
-        private String department ="";
+        private String jobTitle = "";
+        private String department = "";
         private boolean hasPhoto = false;
         private String photoUri;
         private List<Item> emails = new ArrayList<>();
