@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -26,8 +28,11 @@ import com.google.gson.Gson;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
@@ -38,10 +43,13 @@ public class Module extends ReactContextBaseJavaModule {
     private static final String DURATION_LONG_KEY = "LONG";
     private int CONTACT_PICKER_REQUEST = 300;
     Callback _callback;
+    final String IDENTIFIER_KEY = "IDENTIFIER_KEY";
+    SharedPreferences sharedpreferences;
 
     public Module(ReactApplicationContext reactContext) {
         super(reactContext);
         reactContext.addActivityEventListener(mActivityEventListener);
+        sharedpreferences = reactContext.getSharedPreferences("KEYS", Context.MODE_PRIVATE);
     }
 
     private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
@@ -136,8 +144,10 @@ public class Module extends ReactContextBaseJavaModule {
                 Context context = getReactApplicationContext();
                 ContentResolver cr = context.getContentResolver();
 
-                ContactsProvider contactsProvider = new ContactsProvider(cr);
+                ContactsProvider contactsProvider = new ContactsProvider(cr,Module.this);
                 WritableArray contacts = contactsProvider.getContacts();
+
+                Log.i("Contacts", "Contacts " + contacts);
 
                 callback.invoke(contacts);
             }
@@ -158,6 +168,91 @@ public class Module extends ReactContextBaseJavaModule {
         Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, id);
         intent.setData(uri);
         getReactApplicationContext().startActivity(intent);
+    }
+
+    @ReactMethod
+    public void getSources(final Callback callback) {
+        ArrayList<ContactAccount> uniques = new ArrayList<>();
+        ContentResolver resolver = getCurrentActivity().getContentResolver();
+        Cursor cursor = null;
+        try {
+            String[] projection1 = {ContactsContract.RawContacts._ID, ContactsContract.RawContacts.ACCOUNT_NAME, ContactsContract.RawContacts.ACCOUNT_TYPE};
+
+            ArrayList<ContactAccount> sets = new ArrayList<>();
+            String selection = null;
+
+            String loginAccount = "";
+
+            cursor = resolver.query(ContactsContract.RawContacts.CONTENT_URI, projection1, selection, null, null);
+            while (cursor != null && cursor.moveToNext()) {
+                ContactAccount account = new ContactAccount();
+
+                String id = cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts._ID));
+                String accountName = cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME));
+                String accountType = cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_TYPE));
+
+                account.setIdentifier(id);
+                account.setTitle(accountName);
+                account.setType(accountType);
+                if (account.getType().equalsIgnoreCase("com.google")) {
+                    loginAccount = accountName;
+                }
+                account.setLogin(loginAccount);
+                sets.add(account);
+            }
+
+            Set<String> titles = new HashSet<>();
+            for (ContactAccount item : sets) {
+                if (titles.add(item.getType())) {
+                    uniques.add(item);
+                }
+            }
+            if (cursor != null && cursor.getCount() > 0) {
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.i(this.getClass().getName(), e.getMessage());
+        } finally {
+            //cursor.close();
+        }
+        Gson gson = new Gson();
+        String j = gson.toJson(uniques);
+        Log.i("json", "json " + j);
+        callback.invoke(null, j);
+    }
+
+
+    @ReactMethod
+    public void clearActiveSource(final Callback callback) {
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putString(IDENTIFIER_KEY, "");
+        editor.commit();
+        editor.apply();
+        callback.invoke(null, "Cleared active source successfully");
+    }
+
+    @ReactMethod
+    public void setActiveSource(String identifier, final Callback callback) {
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putString(IDENTIFIER_KEY, identifier);
+        editor.commit();
+        editor.apply();
+        callback.invoke(null, "Active source created successfully");
+    }
+
+    @ReactMethod
+    public void getActiveSource(final Callback callback) {
+        String identifier = sharedpreferences.getString(IDENTIFIER_KEY, "");
+        if (identifier.length() == 0) {
+            callback.invoke("Unable to find active source", null);
+        } else {
+            callback.invoke(null, identifier);
+        }
+    }
+
+    public String getSourceId(){
+        String identifier = sharedpreferences.getString(IDENTIFIER_KEY, "");
+        return identifier;
     }
 
     public static String hash256(String data) throws NoSuchAlgorithmException {
