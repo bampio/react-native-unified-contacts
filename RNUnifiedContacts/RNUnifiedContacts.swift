@@ -878,7 +878,7 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       
       var sDictionary = [[String:Any]]()
       for s in allContainers {
-        sDictionary.append(["identifier": s.identifier, "title": s.name,"type":self.sourcesCollection[s.type.rawValue]])
+        sDictionary.append(["sourceIdentifier": s.identifier, "title": s.name,"type":self.sourcesCollection[s.type.rawValue]])
       }
       callback( [NSNull(), sDictionary] )
     } catch {
