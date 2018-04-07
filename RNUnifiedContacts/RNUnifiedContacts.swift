@@ -856,10 +856,10 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
   }
   
   @objc func openContact(_ identifier : String) {
-//    let rController = ContactDetailViewController(nibName: "ContactDetailViewController", bundle: nil)
-//    rController.identifier = identifier
-//    let myViewController = UINavigationController(rootViewController: rController)
-//    present(viewController: myViewController)
+    let rController = ContactDetailViewController(nibName: "ContactDetailViewController", bundle: nil)
+    rController.identifier = identifier
+    let myViewController = UINavigationController(rootViewController: rController)
+    present(viewController: myViewController)
   }
   
   let sourcesCollection = ["unassigned","local","exchange","cardDAV"]
