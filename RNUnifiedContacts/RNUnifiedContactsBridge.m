@@ -41,6 +41,11 @@
              };
 }
 
++ (BOOL)requiresMainQueueSetup
+{
+  return YES;
+}
+
 // Contacts
 RCT_EXTERN_METHOD(getContact:(NSString *)identifier callback:(RCTResponseSenderBlock)callback);
 
