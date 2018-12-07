@@ -1,5 +1,6 @@
 package com.joshuapinter;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -29,7 +30,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
-public class MultiContactPickerActivity extends AppCompatActivity implements MaterialSearchView.OnQueryTextListener {
+public class MultiContactPickerActivity extends Activity implements MaterialSearchView.OnQueryTextListener {
 
     public static final String EXTRA_RESULT_SELECTION = "extra_result_selection";
     private FastScrollRecyclerView recyclerView;
@@ -65,9 +66,9 @@ public class MultiContactPickerActivity extends AppCompatActivity implements Mat
 
         initialiseUI(builder);
 
-        if(getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+//        if(getSupportActionBar() != null) {
+//            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -103,7 +104,7 @@ public class MultiContactPickerActivity extends AppCompatActivity implements Mat
     }
 
     private void initialiseUI(MultiContactPicker.Builder builder){
-        setSupportActionBar(toolbar);
+        //setSupportActionBar(toolbar);
         searchView.setOnQueryTextListener(this);
         if(builder.bubbleColor != 0)
             recyclerView.setBubbleColor(builder.bubbleColor);
