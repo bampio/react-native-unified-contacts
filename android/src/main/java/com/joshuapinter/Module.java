@@ -69,7 +69,7 @@ public class Module extends ReactContextBaseJavaModule {
                 if (resultCode == RESULT_OK) {
                     ContactResult results = MultiContactPicker.obtainContact(intent);
                     Gson g = new Gson();
-                    _callback.invoke(g.toJson(results));
+                    _callback.invoke(null, g.toJson(results));
                 } else if (resultCode == RESULT_CANCELED) {
                     System.out.println("User closed the picker without selecting items.");
                 }
