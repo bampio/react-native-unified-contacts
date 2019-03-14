@@ -8,16 +8,22 @@ import com.joshuapinter.RxContacts.Contact;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.util.Log;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class ContactResult implements Parcelable {
 
+    private String mId;
     private String mDisplayName;
     private boolean mStarred;
     private Uri mPhoto;
     private Uri mThumbnail;
     private List<String> mEmails = new ArrayList<>();
     private List<String> mPhoneNumbers = new ArrayList<>();
+
+    public String getId() {
+        return mId;
+    }
 
     public String getDisplayName() {
         return mDisplayName;
@@ -44,6 +50,7 @@ public class ContactResult implements Parcelable {
     }
 
     public ContactResult(Contact contact){
+        this.mId = contact.getId() + "";
         this.mDisplayName = contact.getDisplayName();
         this.mStarred = contact.isStarred();
         this.mPhoto = contact.getPhoto();
@@ -53,6 +60,7 @@ public class ContactResult implements Parcelable {
     }
 
     protected ContactResult(Parcel in) {
+        this.mId = in.readString();
         this.mDisplayName = in.readString();
         this.mStarred = in.readByte() != 0;
         this.mPhoto = in.readParcelable(Uri.class.getClassLoader());
@@ -68,6 +76,7 @@ public class ContactResult implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.mId);
         dest.writeString(this.mDisplayName);
         dest.writeByte(this.mStarred ? (byte) 1 : (byte) 0);
         dest.writeParcelable(this.mPhoto, flags);
