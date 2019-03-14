@@ -223,6 +223,7 @@ public class Module extends ReactContextBaseJavaModule {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, id);
         intent.setData(uri);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getReactApplicationContext().startActivity(intent);
     }
 
