@@ -15,6 +15,7 @@ public class Contact implements Comparable<Contact> {
     private boolean mStarred;
     private Uri mPhoto;
     private Uri mThumbnail;
+    private String mOrganization;
     private List<String> mEmails = new ArrayList<>();
     private List<String> mPhoneNumbers = new ArrayList<>();
     private boolean isSelected;
@@ -27,6 +28,14 @@ public class Contact implements Comparable<Contact> {
 
     public long getId() {
         return mId;
+    }
+
+    public String getOrganization() {
+        return mOrganization;
+    }
+
+      public void setOrganization(String organization) {
+        mOrganization = organization;
     }
 
     public int getInVisibleGroup() {

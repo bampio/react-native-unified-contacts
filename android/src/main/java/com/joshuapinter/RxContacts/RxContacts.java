@@ -24,6 +24,7 @@ import android.os.Build;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.util.LongSparseArray;
+import android.provider.Contacts;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -79,6 +80,23 @@ public class RxContacts {
         mResolver = context.getContentResolver();
     }
 
+
+    public String getOrganization(String id) {
+        String orgName = "";
+        String where = Contacts.ContactMethods.PERSON_ID + " = ?"; 
+        String[] whereParameters = new String[]{id}; 
+
+        Cursor orgCur = mResolver.query(Contacts.Organizations.CONTENT_URI, null, where, whereParameters, null);
+
+        if (orgCur.moveToFirst()) { 
+            orgName = orgCur.getString(orgCur.getColumnIndex(Contacts.Organizations.COMPANY));
+        } 
+        orgCur.close();
+        return orgName;
+    }
+
+
+
     private void fetch (ObservableEmitter emitter) {
         LongSparseArray<Contact> contacts = new LongSparseArray<>();
         Cursor cursor = createCursor();
@@ -89,6 +107,7 @@ public class RxContacts {
         int starredColumnIndex = cursor.getColumnIndex(ContactsContract.Contacts.STARRED);
         int photoColumnIndex = cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI);
         int thumbnailColumnIndex = cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI);
+        int orgColumnIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Organization.DATA);
 
         while (!cursor.isAfterLast()) {
             long id = cursor.getLong(idColumnIndex);
@@ -100,6 +119,8 @@ public class RxContacts {
                 ColumnMapper.mapStarred(cursor, contact, starredColumnIndex);
                 ColumnMapper.mapPhoto(cursor, contact, photoColumnIndex);
                 ColumnMapper.mapThumbnail(cursor, contact, thumbnailColumnIndex);
+            
+                contact.setOrganization(getOrganization(id + ""));
 
 
 

@@ -28,6 +28,12 @@ class ColumnMapper {
         contact.setInVisibleGroup(cursor.getInt(columnIndex));
     }
 
+    static void mapOrganization (Cursor cursor, Contact contact, int columnIndex) {
+        String organizationName = cursor.getString(columnIndex);
+        if (organizationName != null && !organizationName.isEmpty()) {
+            contact.setOrganization(organizationName);
+        }
+    }
 
     static void mapDisplayName (Cursor cursor, Contact contact, int columnIndex) {
         String displayName = cursor.getString(columnIndex);
