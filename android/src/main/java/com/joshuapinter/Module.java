@@ -15,6 +15,7 @@ import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.util.Base64;
 import android.util.Log;
@@ -203,8 +204,6 @@ public class Module extends ReactContextBaseJavaModule {
                 ContactsProvider contactsProvider = new ContactsProvider(cr,Module.this);
                 WritableArray contacts = contactsProvider.getContacts();
 
-                Log.i("Contacts", "Contacts " + contacts);
-
                 callback.invoke(contacts);
             }
         });
@@ -225,6 +224,26 @@ public class Module extends ReactContextBaseJavaModule {
         intent.setData(uri);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getReactApplicationContext().startActivity(intent);
+    }
+
+    @ReactMethod
+    public void getContact(final String contactId, final Callback callback) {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                Context context = getReactApplicationContext();
+                ContentResolver cr = context.getContentResolver();
+
+                ContactsProvider contactsProvider = new ContactsProvider(cr,Module.this);
+
+                WritableMap contact = contactsProvider.getContactById(contactId);
+
+
+
+
+                callback.invoke(null, contact);
+            }
+        });
     }
 
     @ReactMethod
@@ -352,8 +371,8 @@ public class Module extends ReactContextBaseJavaModule {
         WritableArray emailAddresses = getEmailAddressesFromContact(contactId);
         contactMap.putArray( "emailAddresses", emailAddresses );
 
-        WritableArray postalAddresses = getPostalAddressesFromContact(contactId);
-        contactMap.putArray( "postalAddresses", postalAddresses );
+        //WritableArray postalAddresses = getPostalAddressesFromContact(contactId);
+        //contactMap.putArray( "postalAddresses", postalAddresses );
 
         WritableMap birthday = getBirthdayFromContact(contactId);
         contactMap.putMap( "birthday", birthday );
@@ -407,7 +426,7 @@ public class Module extends ReactContextBaseJavaModule {
 
         birthday.putString( "stringValue", stringValue ); // This will always be returned but day/month/year might not be if it's not available.
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         try {
             Date birthdayDate = dateFormat.parse(stringValue);
@@ -422,6 +441,9 @@ public class Module extends ReactContextBaseJavaModule {
 
         } catch (ParseException e) {
             e.printStackTrace();
+            birthday.putString( "day", "03" );
+            birthday.putString( "month", "06" );
+            birthday.putString( "year", "2019" );
         }
 
         birthdayCursor.close();

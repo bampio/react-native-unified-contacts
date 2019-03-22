@@ -190,6 +190,37 @@ public class ContactsProvider {
         return contacts;
     }
 
+
+    public WritableMap getContactById(String contactId) {
+
+        Map<String, Contact> matchingContacts;
+        {
+            Cursor cursor = contentResolver.query(
+                ContactsContract.Data.CONTENT_URI,
+                FULL_PROJECTION.toArray(new String[FULL_PROJECTION.size()]),
+                ContactsContract.RawContacts.CONTACT_ID + " = ?",
+                new String[]{contactId},
+                null
+            );
+
+            try {
+                matchingContacts = loadContactsFrom(cursor);
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+
+        if(matchingContacts.values().size() > 0) {
+            return matchingContacts.values().iterator().next().toMap();
+        }
+
+       return null;
+    }
+
+
+
     void getCursor(){
 
         Cursor cursor = contentResolver.query(ContactsContract.Data.CONTENT_URI, FULL_PROJECTION.toArray(new String[FULL_PROJECTION.size()]),
@@ -393,6 +424,8 @@ public class ContactsProvider {
                 WritableMap map = Arguments.createMap();
                 map.putString("number", item.value);
                 map.putString("label", item.label);
+                map.putString("digits", item.value);
+                map.putString("stringValue", item.value);
                 phoneNumbers.pushMap(map);
             }
             contact.putArray("phoneNumbers", phoneNumbers);

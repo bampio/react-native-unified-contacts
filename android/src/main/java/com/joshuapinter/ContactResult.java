@@ -56,7 +56,7 @@ public class ContactResult implements Parcelable {
         Gson g = new Gson();
         Log.d("Test", g.toJson(contact));
 
-        this.mId = contact.getId() + "";
+        this.mId = String.valueOf(contact.getId());
         this.mDisplayName = contact.getDisplayName();
         this.mOrganization = contact.getOrganization();
         this.mStarred = contact.isStarred();
