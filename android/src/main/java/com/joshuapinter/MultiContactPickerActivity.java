@@ -30,7 +30,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
-public class MultiContactPickerActivity extends Activity implements MaterialSearchView.OnQueryTextListener {
+public class MultiContactPickerActivity extends AppCompatActivity implements MaterialSearchView.OnQueryTextListener {
 
     public static final String EXTRA_RESULT_SELECTION = "extra_result_selection";
     private FastScrollRecyclerView recyclerView;
@@ -62,13 +62,13 @@ public class MultiContactPickerActivity extends Activity implements MaterialSear
         searchView = (MaterialSearchView) findViewById(R.id.search_view);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         tvSelectBtn = (TextView) findViewById(R.id.tvSelect);
-        recyclerView = (FastScrollRecyclerView) findViewById(R.id.recyclerView);
+        recyclerView = findViewById(R.id.recyclerView);
 
         initialiseUI(builder);
 
-//        if(getSupportActionBar() != null) {
-//            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//        }
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -104,7 +104,7 @@ public class MultiContactPickerActivity extends Activity implements MaterialSear
     }
 
     private void initialiseUI(MultiContactPicker.Builder builder){
-        //setSupportActionBar(toolbar);
+        setSupportActionBar(toolbar);
         searchView.setOnQueryTextListener(this);
         if(builder.bubbleColor != 0)
             recyclerView.setBubbleColor(builder.bubbleColor);

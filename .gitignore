@@ -53,3 +53,6 @@ fastlane/screenshots
 node_modules/**/*
 sources
 .DS_Store
+android/.gradle
+android/build
+
