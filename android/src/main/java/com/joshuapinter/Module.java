@@ -117,12 +117,17 @@ public class Module extends ReactContextBaseJavaModule {
     }
 
     private void composeBuilder(ReadableArray ids, Callback callback, boolean multiSelectEnabled) {
+        ArrayList<String> idsConvert = new ArrayList<>();
+        for (int i = 0; i < ids.size(); i++) {
+            String item = String.valueOf(((Double) ids.toArrayList().get(i)).intValue());
+            idsConvert.add(item);
+        }
         _callback = callback;
         new MultiContactPicker.Builder(getCurrentActivity()) //Activity/fragment context
                 //.theme(R.style.MyCustomPickerTheme) //Optional - default: MultiContactPicker.Azure
                 .hideScrollbar(false) //Optional - default: false
                 .showTrack(true) //Optional - default: true
-                .ids(ids.toArrayList())
+                .ids(idsConvert)
                 .multiSelectEnabled(multiSelectEnabled)
                 .searchIconColor(Color.WHITE) //Option - default: White
                 //.handleColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimary)) //Optional - default: Azure Blue
