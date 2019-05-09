@@ -434,6 +434,7 @@ public class ContactsProvider {
             for (Item item : emails) {
                 WritableMap map = Arguments.createMap();
                 map.putString("email", item.value);
+                map.putString("value", item.value);
                 map.putString("label", item.label);
                 emailAddresses.pushMap(map);
             }
