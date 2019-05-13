@@ -282,9 +282,15 @@ public class Module extends ReactContextBaseJavaModule {
                 sets.add(account);
             }
 
-            Set<String> titles = new HashSet<>();
+//            Set<String> titles = new HashSet<>();
+//            for (ContactAccount item : sets) {
+//                if (titles.add(item.getType())) {
+//                    uniques.add(item);
+//                }
+//            }
+            Set<String> arrayLogin = new HashSet<>();
             for (ContactAccount item : sets) {
-                if (titles.add(item.getType())) {
+                if (arrayLogin.add(item.getLogin())) {
                     uniques.add(item);
                 }
             }
