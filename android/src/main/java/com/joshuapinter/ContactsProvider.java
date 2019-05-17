@@ -6,8 +6,10 @@ package com.joshuapinter;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -15,6 +17,7 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -31,6 +34,7 @@ import static android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import static android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import static android.provider.ContactsContract.CommonDataKinds.Event;
 
+import android.util.Base64;
 import android.util.Log;
 
 public class ContactsProvider {
@@ -272,6 +276,16 @@ public class ContactsProvider {
                 String rawPhotoURI = cursor.getString(cursor.getColumnIndex(Contactables.PHOTO_URI));
                 if (!TextUtils.isEmpty(rawPhotoURI)) {
                     contact.photoUri = rawPhotoURI;
+                    try {
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(contentResolver, Uri.parse(rawPhotoURI));
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+                        byte[] byteArray = outputStream.toByteArray();
+                        String base64 = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                        contact.thumbnailImageData = base64;
+                    }catch (Exception ex){
+                        ex.printStackTrace();
+                    }
                     contact.hasPhoto = true;
                 }
             }
@@ -395,6 +409,7 @@ public class ContactsProvider {
         private String department = "";
         private boolean hasPhoto = false;
         private String photoUri;
+        private String thumbnailImageData;
         private List<Item> emails = new ArrayList<>();
         private List<Item> phones = new ArrayList<>();
         private List<PostalAddressItem> postalAddresses = new ArrayList<>();
@@ -418,6 +433,10 @@ public class ContactsProvider {
             contact.putString("department", department);
             contact.putBoolean("hasThumbnail", this.hasPhoto);
             contact.putString("thumbnailPath", photoUri == null ? "" : photoUri);
+            contact.putString("thumbnailImageData", thumbnailImageData == null ? "" : thumbnailImageData);
+            contact.putBoolean("imageDataAvailable", !TextUtils.isEmpty(thumbnailImageData));
+
+            //HAS
 
             WritableArray phoneNumbers = Arguments.createArray();
             for (Item item : phones) {
