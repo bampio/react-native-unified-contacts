@@ -426,6 +426,7 @@ public class ContactsProvider {
             contact.putString("givenName", TextUtils.isEmpty(givenName) ? displayName : givenName);
             contact.putString("middleName", middleName);
             contact.putString("familyName", familyName);
+            contact.putString("fullName", displayName);
             contact.putString("prefix", prefix);
             contact.putString("suffix", suffix);
             contact.putString("company", company);
