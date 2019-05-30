@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.net.Uri;
 
 import com.joshuapinter.ColorUtils;
+import com.joshuapinter.ContactAccount;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ public class Contact implements Comparable<Contact> {
     private List<String> mPhoneNumbers = new ArrayList<>();
     private boolean isSelected;
     private int backgroundColor = Color.BLUE;
+    private ContactAccount mContactAccount;
 
     Contact(long id) {
         this.mId = id;
@@ -28,6 +30,14 @@ public class Contact implements Comparable<Contact> {
 
     public long getId() {
         return mId;
+    }
+
+    public ContactAccount getContactAccount() {
+        return mContactAccount;
+    }
+
+    public void setContactAccount(ContactAccount contactAccount) {
+        this.mContactAccount = contactAccount;
     }
 
     public String getOrganization() {
