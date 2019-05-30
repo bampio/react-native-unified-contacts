@@ -30,6 +30,7 @@ public class MultiContactPicker {
         protected boolean showTrack = true;
         public ArrayList ids;
         protected boolean multiSelectEnabled;
+        protected String contactAccount;
 
         public Builder(@NonNull Activity act) {
             this.acc = act;
@@ -56,6 +57,11 @@ public class MultiContactPicker {
 
         public Builder ids(ArrayList ids) {
             this.ids = ids;
+            return this;
+        }
+
+        public Builder contactAccount(String contactAccount) {
+            this.contactAccount = contactAccount;
             return this;
         }
 
