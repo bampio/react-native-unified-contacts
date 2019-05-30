@@ -107,16 +107,16 @@ public class Module extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void pickContact(ReadableArray ids, Callback callback) {
-        composeBuilder(ids, callback, false);
+    public void pickContact(ReadableArray ids, String accountName, Callback callback) {
+        composeBuilder(ids, accountName, callback, false);
     }
 
     @ReactMethod
-    public void pickContacts(ReadableArray ids, Callback callback) {
-        composeBuilder(ids, callback, true);
+    public void pickContacts(ReadableArray ids, String accountName, Callback callback) {
+        composeBuilder(ids, accountName, callback, true);
     }
 
-    private void composeBuilder(ReadableArray ids, Callback callback, boolean multiSelectEnabled) {
+    private void composeBuilder(ReadableArray ids, String accountName, Callback callback, boolean multiSelectEnabled) {
         ArrayList<String> idsConvert = new ArrayList<>();
         for (int i = 0; i < ids.size(); i++) {
             try {
@@ -133,6 +133,7 @@ public class Module extends ReactContextBaseJavaModule {
                 .hideScrollbar(false) //Optional - default: false
                 .showTrack(true) //Optional - default: true
                 .ids(idsConvert)
+                .contactAccount(accountName)
                 .multiSelectEnabled(multiSelectEnabled)
                 .searchIconColor(Color.WHITE) //Option - default: White
                 //.handleColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimary)) //Optional - default: Azure Blue
