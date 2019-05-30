@@ -23,8 +23,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.util.LongSparseArray;
 import android.provider.Contacts;
+
+import com.joshuapinter.ContactAccount;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -121,6 +124,7 @@ public class RxContacts {
                 ColumnMapper.mapThumbnail(cursor, contact, thumbnailColumnIndex);
             
                 contact.setOrganization(getOrganization(id + ""));
+                contact.setContactAccount(getContactAccount(id+""));
 
 
 
@@ -176,6 +180,38 @@ public class RxContacts {
                 null,
                 ContactsContract.Contacts._ID
         );
+    }
+
+
+    public ContactAccount getContactAccount(String id) {
+
+        ContactAccount account = null;
+
+        Cursor cursor = null;
+        try {
+
+            cursor = mResolver.query(ContactsContract.RawContacts.CONTENT_URI,
+                    new String[]{ContactsContract.RawContacts.ACCOUNT_NAME, ContactsContract.RawContacts.ACCOUNT_TYPE},
+                    ContactsContract.RawContacts.CONTACT_ID +"=?",
+                    new String[]{id},
+                    null);
+
+            if (cursor != null && cursor.getCount() > 0)
+            {
+                cursor.moveToFirst();
+                account = new ContactAccount();
+                account.setIdentifier(cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME)));
+                account.setLogin(cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME)));
+                account.setTitle(cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME)));
+                account.setType(cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_TYPE)));
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.i(this.getClass().getName(), e.getMessage());
+        } finally{
+            cursor.close();
+        }
+        return(account);
     }
 
 }
