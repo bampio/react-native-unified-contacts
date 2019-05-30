@@ -8,6 +8,7 @@ import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -148,7 +149,9 @@ public class MultiContactPickerActivity extends AppCompatActivity implements Mat
                     @Override
                     public void onNext(Contact value) {
 
-                        if(!(builder.ids.contains(String.valueOf(value.getId())))){
+                        boolean isSameAccount = TextUtils.isEmpty(builder.contactAccount) ? true : value.getContactAccount() == null ? false : builder.contactAccount.equalsIgnoreCase(value.getContactAccount().title);
+
+                        if(!(builder.ids.contains(String.valueOf(value.getId()))) && isSameAccount){
                             contactList.add(value);
                         }
 
