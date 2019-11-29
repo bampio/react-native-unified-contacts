@@ -166,37 +166,40 @@ class RNUnifiedContacts: NSObject, ContactPickerDelegateDelegate,CNContactViewCo
       callback(result as NSObject)
     }
   }
+  
   @objc func searchContacts(_ searchText: String?, callback: (NSArray) -> ()) -> Void {
-    do {
-      var cNContacts = [CNContact]()
-      let fetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch as [CNKeyDescriptor])
-      let sourceId = getActiveIdentifier()
-      if sourceId == nil{
-        fetchRequest.predicate = CNContact.predicateForContactsInContainer(withIdentifier: contactStore.defaultContainerIdentifier())
-      }else{
-        fetchRequest.predicate = CNContact.predicateForContactsInContainer(withIdentifier: getActiveIdentifier()!)
-      }
-      
-      fetchRequest.sortOrder = CNContactSortOrder.givenName
-      try contactStore.enumerateContacts(with: fetchRequest) { (cNContact, pointer) -> Void in
-        if searchText == nil {
-          // Add all Contacts if no searchText is provided.
-          cNContacts.append(cNContact)
-        } else {
-          // If the Contact contains the search string then add it.
-          if self.contactContainsText( cNContact, searchText: searchText! ) {
-            cNContacts.append(cNContact)
+      let contactStore = CNContactStore()
+      do {
+          var cNContacts = [CNContact]()
+
+          let fetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch as [CNKeyDescriptor])
+
+          fetchRequest.sortOrder = CNContactSortOrder.givenName
+
+          try contactStore.enumerateContacts(with: fetchRequest) { (cNContact, pointer) -> Void in
+              if searchText == nil {
+                  // Add all Contacts if no searchText is provided.
+                  cNContacts.append(cNContact)
+              } else {
+                  // If the Contact contains the search string then add it.
+                  if self.contactContainsText( cNContact, searchText: searchText! ) {
+                      cNContacts.append(cNContact)
+                  }
+              }
           }
-        }
+
+          var contacts = [NSDictionary]();
+          for cNContact in cNContacts {
+              contacts.append( convertCNContactToDictionary(cNContact) )
+          }
+
+          callback([NSNull(), contacts])
+      } catch let error as NSError {
+          NSLog("Problem getting contacts.")
+          NSLog(error.localizedDescription)
+
+          callback([error.localizedDescription, NSNull()])
       }
-      var contacts = [NSDictionary]();
-      for cNContact in cNContacts {
-        contacts.append( convertCNContactToDictionary(cNContact) )
-      }
-      callback([NSNull(), contacts])
-    } catch let error as NSError {
-      callback([error.localizedDescription, NSNull()])
-    }
   }
 
   @objc func getGroups(_ callback: (NSArray) -> ()) -> Void {
